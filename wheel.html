@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Valorant Agent Wheel Spinner</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #121212;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    #wheelCanvas {
+      border: 2px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+
+    #spinnerControls {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #winnerBanner {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #333;
+      border-radius: 8px;
+      display: none;
+      text-align: center;
+    }
+
+    #winnerImage {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      margin-top: 10px;
+    }
+
+    button {
+      background-color: #ff4500;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #e44100;
+    }
+
+    label {
+      color: #fff;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    input[type="checkbox"] {
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Valorant Agent Wheel Spinner</h1>
+
+  <canvas id="wheelCanvas" width="500" height="500"></canvas>
+
+  <div id="spinnerControls">
+    <button id="spinButton">Spin the Wheel</button>
+    <label for="randomizeWinSoundsToggle">Randomize Win Sounds
+      <input type="checkbox" id="randomizeWinSoundsToggle">
+    </label>
+  </div>
+
+  <div id="winnerBanner">
+    <h3>Winner:</h3>
+    <p id="winnerName"></p>
+    <img id="winnerImage" src="" alt="Agent Image">
+  </div>
+
+  <audio id="spinSound" src="assets/sounds/spin.mp3"></audio>
+
+  <script>
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    const spinBtn = document.getElementById('spinButton');
+    const spinSound = document.getElementById('spinSound');
+    const winnerBanner = document.getElementById('winnerBanner');
+    const winnerName = document.getElementById('winnerName');
+    const winnerImage = document.getElementById('winnerImage');
+    const randomizeWinSoundsToggle = document.getElementById('randomizeWinSoundsToggle');
+
+    // List of agents (up to 4 win sound options per agent)
+    let agents = [
+      { name: 'Jett', color: '#00bfff', img: '', winSounds: [
+          { label: 'Option 1', path: 'assets/sounds/jett.mp3', isDefault: true },
+          { label: 'Option 2', path: 'assets/sounds/jett2.mp3', isDefault: false },
+          { label: 'Option 3', path: 'assets/sounds/jett3.mp3', isDefault: false },
+          { label: 'Option 4', path: 'assets/sounds/jett4.mp3', isDefault: false }
+        ]
+      },
+      { name: 'Phoenix', color: '#ff4500', img: '', winSounds: [
+          { label: 'Option 1', path: 'assets/sounds/phoenix.mp3', isDefault: true },
+          { label: 'Option 2', path: 'assets/sounds/phoenix2.mp3', isDefault: false },
+          { label: 'Option 3', path: 'assets/sounds/phoenix3.mp3', isDefault: false },
+          { label: 'Option 4', path: 'assets/sounds/phoenix4.mp3', isDefault: false }
+        ]
+      },
+      { name: 'Sage', color: '#32cd32', img: '', winSounds: [
+          { label: 'Option 1', path: 'assets/sounds/sage.mp3', isDefault: true },
+          { label: 'Option 2', path: 'assets/sounds/sage2.mp3', isDefault: false },
+          { label: 'Option 3', path: 'assets/sounds/sage3.mp3', isDefault: false },
+          { label: 'Option 4', path: 'assets/sounds/sage4.mp3', isDefault: false }
+        ]
+      },
+      { name: 'Omen', color: '#660066', img: '', winSounds: [
+          { label: 'Option 1', path: 'assets/sounds/omen.mp3', isDefault: true },
+          { label: 'Option 2', path: 'assets/sounds/omen2.mp3', isDefault: false },
+          { label: 'Option 3', path: 'assets/sounds/omen3.mp3', isDefault: false },
+          { label: 'Option 4', path: 'assets/sounds/omen4.mp3', isDefault: false }
+        ]
+      },
+      { name: 'Breach', color: '#ff0000', img: '', winSounds: [
+          { label: 'Option 1', path: 'assets/sounds/breach.mp3', isDefault: true },
+          { label: 'Option 2', path: 'assets/sounds/breach2.mp3', isDefault: false },
+          { label: 'Option 3', path: 'assets/sounds/breach3.mp3', isDefault: false },
+          { label: 'Option 4', path: 'assets/sounds/breach4.mp3', isDefault: false }
+        ]
+      },
+      { name: 'Raze', color: '#ff6f00', img: '', winSounds: [
+          { label: 'Option 1', path: 'assets/sounds/raze.mp3', isDefault: true },
+          { label: 'Option 2', path: 'assets/sounds/raze2.mp3', isDefault: false },
+          { label: 'Option 3', path: 'assets/sounds/raze3.mp3', isDefault: false },
+          { label: 'Option 4', path: 'assets/sounds/raze4.mp3', isDefault: false }
+        ]
+      },
+      { name: 'Killjoy', color: '#ffaa00', img: '', winSounds: [
+          { label: 'Option 1', path: 'assets/sounds/killjoy.mp3', isDefault: true },
+          { label: 'Option 2', path: 'assets/sounds/killjoy2.mp3', isDefault: false },
+          { label: 'Option 3', path: 'assets/sounds/killjoy3.mp3', isDefault: false },
+          { label: 'Option 4', path: 'assets/sounds/killjoy4.mp3', isDefault: false }
+        ]
+      },
+      { name: 'Astra', color: '#9b4d96', img: '', winSounds: [
+          { label: 'Option 1', path: 'assets/sounds/astra.mp3', isDefault: true },
+          { label: 'Option 2', path: 'assets/sounds/astra2.mp3', isDefault: false },
+          { label: 'Option 3', path: 'assets/sounds/astra3.mp3', isDefault: false },
+          { label: 'Option 4', path: 'assets/sounds/astra4.mp3', isDefault: false }
+        ]
+      },
+      { name: 'Yoru', color: '#b7b7b7', img: '', winSounds: [
+          { label: 'Option 1', path: 'assets/sounds/yoru.mp3', isDefault: true },
+          { label: 'Option 2', path: 'assets/sounds/yoru2.mp3', isDefault: false },
+          { label: 'Option 3', path: 'assets/sounds/yoru3.mp3', isDefault: false },
+          { label: 'Option 4', path: 'assets/sounds/yoru4.mp3', isDefault: false }
+        ]
+      }
+    ];
+
+    // Store user preferences
+    let useAgentSounds = JSON.parse(localStorage.getItem('useAgentSounds')) ?? true;
+    let globalWinSoundPath = localStorage.getItem('globalWinSoundPath') || 'assets/sounds/win.mp3';
+    let randomizeWinSounds = JSON.parse(localStorage.getItem
