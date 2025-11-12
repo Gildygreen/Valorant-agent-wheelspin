@@ -4,34 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Valorant Wheel Spinner</title>
+  <link rel="icon" href="assets/images/icon.png" type="image/png">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- New Titles Section -->
-  <div id="title-section">
-    <h1 id="main-title">Valorant Agents</h1>
-    <h2 id="subtitle">by Gildygreen</h2>
-  </div>
-
   <!-- Canvas for the wheel spinner -->
   <div id="wheelContainer">
     <canvas id="wheelCanvas" width="800" height="800"></canvas>
     <div id="wheelMarker" aria-hidden="true"></div>
   </div>
 
-  <!-- Spin triggered by clicking the wheel (button removed) -->
-
-  <!-- Winner modal (replaces banner) -->
   <div id="winnerModal" class="modal" aria-hidden="true">
     <div class="modal-content">
       <span id="closeWinner" class="close" role="button" aria-label="Close">&times;</span>
       <h2 id="winnerModalName">Winner</h2>
       <img id="winnerModalImage" alt="Winner Image" />
-      <div>
-        <label for="winnerCustomText">Custom text (shown in winner popup):</label>
-        <textarea id="winnerCustomText" rows="3" placeholder="Congrats!" style="width:100%"></textarea>
-      </div>
-      <div style="margin-top:12px; text-align:right;">
+      <div style="margin-top:12px; text-align:center;">
         <button id="closeWinnerBtn">Close</button>
       </div>
     </div>
@@ -61,6 +49,34 @@
 
       <div>
         <label><input type="checkbox" id="randomizeWinSoundsToggle"> Randomize Per-Agent Win Sounds</label>
+      </div>
+
+      <hr />
+      <div id="tickSoundSettings">
+        <h4>Tick sound</h4>
+        <label><input type="checkbox" id="tickEnabledToggle"> Enable tick sound</label>
+        <div style="margin-top:8px;">
+          <label for="tickVolumeRange">Tick volume</label>
+          <input id="tickVolumeRange" type="range" min="0" max="1" step="0.01" value="0.9" />
+        </div>
+        <div style="margin-top:8px;">
+          <label for="tickOffsetRange">Tick offset (ms)</label>
+          <input id="tickOffsetRange" type="range" min="-200" max="200" step="10" value="0" />
+          <span id="tickOffsetLabel">0 ms</span>
+        </div>
+      </div>
+      <div id="drumrollSettings" style="margin-top:12px;">
+        <h4>Drumroll</h4>
+        <label><input type="checkbox" id="drumrollEnabledToggle"> Enable drumroll</label>
+        <div style="margin-top:8px;">
+          <label for="drumrollVolumeRange">Drumroll volume</label>
+          <input id="drumrollVolumeRange" type="range" min="0" max="1" step="0.01" value="0.9" />
+        </div>
+        <div style="margin-top:8px;">
+          <label for="drumrollLeadRange">Drumroll lead time (ms)</label>
+          <input id="drumrollLeadRange" type="range" min="300" max="3000" step="100" value="1200" />
+          <span id="drumrollLeadLabel">1200 ms</span>
+        </div>
       </div>
 
       <hr />

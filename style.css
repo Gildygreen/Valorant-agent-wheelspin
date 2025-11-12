@@ -101,6 +101,35 @@ canvas {
   max-width: 600px;
 }
 
+/* Ensure modal content stays inside the viewport and becomes scrollable when needed */
+.modal {
+  padding: 20px; /* keeps content away from edges on very small screens */
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.modal-content {
+  box-sizing: border-box;
+  max-height: calc(100vh - 80px); /* allow some space top/bottom */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure inputs, textareas and images inside modals don't overflow */
+.modal-content img,
+.modal-content input,
+.modal-content textarea,
+.modal-content select,
+.modal-content button {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Per-agent rows should wrap nicely on small screens */
+.agent-setting {
+  flex-wrap: wrap;
+}
+
 .modal .close {
   float: right;
   font-size: 24px;
