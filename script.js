@@ -7,6 +7,10 @@ const defaultWinSound = document.getElementById('defaultWinSound');
 const winnerBanner = document.getElementById('winnerBanner');
 const winnerName = document.getElementById('winnerName');
 const winnerImage = document.getElementById('winnerImage');
+const toggleAgentSounds = document.getElementById('toggleAgentSounds');
+const globalSoundSection = document.getElementById('globalSoundSection');
+const globalWinSoundUpload = document.getElementById('globalWinSoundUpload');
+const previewGlobalWinSound = document.getElementById('previewGlobalWinSound');
 
 let agents = JSON.parse(localStorage.getItem('agents')) || [
   { name: 'Jett', color: '#00bfff', img: '', winSound: '' },
@@ -14,9 +18,13 @@ let agents = JSON.parse(localStorage.getItem('agents')) || [
   { name: 'Sage', color: '#00ff99', img: '', winSound: '' },
 ];
 
+let useAgentSounds = JSON.parse(localStorage.getItem('useAgentSounds')) ?? true;
+let globalWinSoundPath = localStorage.getItem('globalWinSoundPath') || 'assets/sounds/win.mp3';
+
 let startAngle = 0;
 let spinning = false;
 
+// Draw the wheel with icons and names
 function drawWheel() {
   const arc = Math.PI * 2 / agents.length;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -43,7 +51,7 @@ function drawWheel() {
       };
     }
 
-    // Agent name
+    // Agent name + sound icon
     ctx.save();
     ctx.translate(250, 250);
     ctx.rotate(angle + arc / 2);
@@ -51,10 +59,18 @@ function drawWheel() {
     ctx.font = "bold 16px Poppins";
     ctx.textAlign = "right";
     ctx.fillText(agent.name, 230, 10);
+
+    // Draw speaker icon if per-agent sounds are enabled
+    if (useAgentSounds && agent.winSound) {
+      ctx.font = "bold 14px Poppins";
+      ctx.fillText("🔊", 215, -5);
+    }
+
     ctx.restore();
   });
 }
 
+// Wheel spinning logic
 function spinWheel() {
   if (spinning || agents.length === 0) return;
   spinning = true;
@@ -81,6 +97,7 @@ function spinWheel() {
   rotate();
 }
 
+// Stop and select winner
 function stopRotateWheel() {
   const arc = Math.PI * 2 / agents.length;
   const degrees = startAngle * 180 / Math.PI + 90;
@@ -92,23 +109,22 @@ function stopRotateWheel() {
   showWinnerBanner(winner);
 }
 
-// --- Custom win sound per agent ---
+// Play win sound
 function playWinSound(agent) {
-  if (agent.winSound) {
-    const audio = new Audio(agent.winSound);
-    audio.play();
+  if (useAgentSounds && agent.winSound) {
+    new Audio(agent.winSound).play();
   } else {
-    defaultWinSound.currentTime = 0;
-    defaultWinSound.play();
+    new Audio(globalWinSoundPath).play();
   }
 }
 
+// Animation easing
 function easeOutQuad(t, b, c, d) {
   t /= d;
   return -c * t * (t - 2) + b;
 }
 
-// 🏆 Winner banner
+// Winner overlay
 function showWinnerBanner(agent) {
   winnerName.textContent = agent.name;
   winnerImage.src = agent.img || 'https://upload.wikimedia.org/wikipedia/en/5/53/Valorant_icon.png';
@@ -116,7 +132,7 @@ function showWinnerBanner(agent) {
   setTimeout(() => winnerBanner.classList.remove('show'), 5000);
 }
 
-// 🎨 UI Controls
+// Agent list UI
 function updateAgentList() {
   agentListDiv.innerHTML = '';
   agents.forEach((agent, i) => {
@@ -127,13 +143,12 @@ function updateAgentList() {
       <input type="color" value="${agent.color}" data-index="${i}" class="agent-color">
       <input type="file" accept="image/*" data-index="${i}" class="agent-img">
       <input type="file" accept="audio/*" data-index="${i}" class="agent-sound">
-      <button data-index="${i}" class="preview-sound" title="Preview Sound">🔊</button>
+      <button data-index="${i}" class="preview-sound">🔊</button>
       <button data-index="${i}" class="remove-agent">🗑️</button>
     `;
     agentListDiv.appendChild(row);
   });
 
-  // Update listeners
   document.querySelectorAll('.agent-name').forEach(input =>
     input.addEventListener('input', e => agents[e.target.dataset.index].name = e.target.value)
   );
@@ -147,6 +162,7 @@ function updateAgentList() {
         const reader = new FileReader();
         reader.onload = () => agents[e.target.dataset.index].img = reader.result;
         reader.readAsDataURL(file);
+        drawWheel();
       }
     })
   );
@@ -154,28 +170,19 @@ function updateAgentList() {
     input.addEventListener('change', e => {
       const file = e.target.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = () => agents[e.target.dataset.index].winSound = reader.result;
-        reader.readAsDataURL(file);
+        const url = URL.createObjectURL(file);
+        agents[e.target.dataset.index].winSound = url;
+        drawWheel();
       }
     })
   );
-
-  // 🔊 Preview Sound Button
   document.querySelectorAll('.preview-sound').forEach(btn =>
     btn.addEventListener('click', e => {
-      const index = e.target.dataset.index;
-      const agent = agents[index];
-      if (agent.winSound) {
-        const audio = new Audio(agent.winSound);
-        audio.play();
-      } else {
-        alert(`No win sound uploaded for ${agent.name}.`);
-      }
+      const agent = agents[e.target.dataset.index];
+      if (agent.winSound) new Audio(agent.winSound).play();
+      else alert(`No sound uploaded for ${agent.name}`);
     })
   );
-
-  // Remove agent button
   document.querySelectorAll('.remove-agent').forEach(btn =>
     btn.addEventListener('click', e => {
       agents.splice(e.target.dataset.index, 1);
@@ -185,37 +192,63 @@ function updateAgentList() {
   );
 }
 
+// Add agent
 document.getElementById('addAgent').addEventListener('click', () => {
   agents.push({ name: 'New Agent', color: '#ffffff', img: '', winSound: '' });
   updateAgentList();
   drawWheel();
 });
 
+// Save / load configuration
 document.getElementById('saveConfig').addEventListener('click', () => {
   localStorage.setItem('agents', JSON.stringify(agents));
+  localStorage.setItem('useAgentSounds', JSON.stringify(useAgentSounds));
+  localStorage.setItem('globalWinSoundPath', globalWinSoundPath);
   alert('Saved!');
 });
 
 document.getElementById('loadConfig').addEventListener('click', () => {
-  const saved = localStorage.getItem('agents');
-  if (saved) {
-    agents = JSON.parse(saved);
-    updateAgentList();
-    drawWheel();
-  } else {
-    alert('No saved setup found.');
-  }
+  const savedAgents = localStorage.getItem('agents');
+  const savedUseAgentSounds = localStorage.getItem('useAgentSounds');
+  const savedGlobalPath = localStorage.getItem('globalWinSoundPath');
+
+  if (savedAgents) agents = JSON.parse(savedAgents);
+  if (savedUseAgentSounds) useAgentSounds = JSON.parse(savedUseAgentSounds);
+  if (savedGlobalPath) globalWinSoundPath = savedGlobalPath;
+
+  toggleAgentSounds.checked = useAgentSounds;
+  globalSoundSection.style.opacity = useAgentSounds ? '0.4' : '1';
+  updateAgentList();
+  drawWheel();
 });
 
-document.getElementById('soundUpload').addEventListener('change', e => {
+// Per-agent toggle
+toggleAgentSounds.addEventListener('change', () => {
+  useAgentSounds = toggleAgentSounds.checked;
+  globalSoundSection.style.opacity = useAgentSounds ? '0.4' : '1';
+  drawWheel();
+});
+
+// Global win sound upload
+globalWinSoundUpload.addEventListener('change', e => {
   const file = e.target.files[0];
   if (file) {
-    const url = URL.createObjectURL(file);
-    spinSound.src = url;
+    globalWinSoundPath = URL.createObjectURL(file);
   }
 });
 
-// 🎊 Confetti
+// Preview global sound
+previewGlobalWinSound.addEventListener('click', () => {
+  new Audio(globalWinSoundPath).play();
+});
+
+// Spin sound upload
+document.getElementById('spinSoundUpload').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (file) spinSound.src = URL.createObjectURL(file);
+});
+
+// Confetti celebration
 const confettiCanvas = document.getElementById('confetti');
 const confettiCtx = confettiCanvas.getContext('2d');
 confettiCanvas.width = window.innerWidth;
@@ -244,7 +277,7 @@ function confettiBurst() {
   draw();
 }
 
-// ⌨️ Hotkeys
+// Hotkey support
 document.addEventListener('keydown', e => {
   if (e.code === 'Space') spinWheel();
 });
@@ -252,5 +285,7 @@ document.addEventListener('keydown', e => {
 spinBtn.addEventListener('click', spinWheel);
 
 // Init
+toggleAgentSounds.checked = useAgentSounds;
+globalSoundSection.style.opacity = useAgentSounds ? '0.4' : '1';
 updateAgentList();
 drawWheel();
