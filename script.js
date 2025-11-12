@@ -3,15 +3,15 @@ const ctx = canvas.getContext('2d');
 const spinBtn = document.getElementById('spinButton');
 const agentListDiv = document.getElementById('agentList');
 const spinSound = document.getElementById('spinSound');
-const winSound = document.getElementById('winSound');
+const defaultWinSound = document.getElementById('defaultWinSound');
 const winnerBanner = document.getElementById('winnerBanner');
 const winnerName = document.getElementById('winnerName');
 const winnerImage = document.getElementById('winnerImage');
 
 let agents = JSON.parse(localStorage.getItem('agents')) || [
-  { name: 'Jett', color: '#00bfff', img: '' },
-  { name: 'Phoenix', color: '#ff4500', img: '' },
-  { name: 'Sage', color: '#00ff99', img: '' },
+  { name: 'Jett', color: '#00bfff', img: '', winSound: '' },
+  { name: 'Phoenix', color: '#ff4500', img: '', winSound: '' },
+  { name: 'Sage', color: '#00ff99', img: '', winSound: '' },
 ];
 
 let startAngle = 0;
@@ -23,7 +23,6 @@ function drawWheel() {
 
   agents.forEach((agent, i) => {
     const angle = startAngle + i * arc;
-
     ctx.beginPath();
     ctx.fillStyle = agent.color;
     ctx.moveTo(250, 250);
@@ -31,7 +30,7 @@ function drawWheel() {
     ctx.lineTo(250, 250);
     ctx.fill();
 
-    // Draw agent image if exists
+    // Image
     if (agent.img) {
       const img = new Image();
       img.src = agent.img;
@@ -44,7 +43,7 @@ function drawWheel() {
       };
     }
 
-    // Agent name
+    // Text
     ctx.save();
     ctx.translate(250, 250);
     ctx.rotate(angle + arc / 2);
@@ -88,9 +87,20 @@ function stopRotateWheel() {
   const index = Math.floor((360 - (degrees % 360)) / (360 / agents.length)) % agents.length;
   const winner = agents[index];
 
-  winSound.play();
+  playWinSound(winner);
   confettiBurst();
   showWinnerBanner(winner);
+}
+
+// --- Custom win sound per agent ---
+function playWinSound(agent) {
+  if (agent.winSound) {
+    const audio = new Audio(agent.winSound);
+    audio.play();
+  } else {
+    defaultWinSound.currentTime = 0;
+    defaultWinSound.play();
+  }
 }
 
 function easeOutQuad(t, b, c, d) {
@@ -102,12 +112,11 @@ function easeOutQuad(t, b, c, d) {
 function showWinnerBanner(agent) {
   winnerName.textContent = agent.name;
   winnerImage.src = agent.img || 'https://upload.wikimedia.org/wikipedia/en/5/53/Valorant_icon.png';
-  
   winnerBanner.classList.add('show');
   setTimeout(() => winnerBanner.classList.remove('show'), 5000);
 }
 
-// 🎨 UI Logic
+// 🎨 UI Controls
 function updateAgentList() {
   agentListDiv.innerHTML = '';
   agents.forEach((agent, i) => {
@@ -117,6 +126,7 @@ function updateAgentList() {
       <input type="text" value="${agent.name}" data-index="${i}" class="agent-name">
       <input type="color" value="${agent.color}" data-index="${i}" class="agent-color">
       <input type="file" accept="image/*" data-index="${i}" class="agent-img">
+      <input type="file" accept="audio/*" data-index="${i}" class="agent-sound">
       <button data-index="${i}" class="remove-agent">🗑️</button>
     `;
     agentListDiv.appendChild(row);
@@ -138,6 +148,16 @@ function updateAgentList() {
       }
     })
   );
+  document.querySelectorAll('.agent-sound').forEach(input =>
+    input.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => agents[e.target.dataset.index].winSound = reader.result;
+        reader.readAsDataURL(file);
+      }
+    })
+  );
   document.querySelectorAll('.remove-agent').forEach(btn =>
     btn.addEventListener('click', e => {
       agents.splice(e.target.dataset.index, 1);
@@ -148,7 +168,7 @@ function updateAgentList() {
 }
 
 document.getElementById('addAgent').addEventListener('click', () => {
-  agents.push({ name: 'New Agent', color: '#ffffff', img: '' });
+  agents.push({ name: 'New Agent', color: '#ffffff', img: '', winSound: '' });
   updateAgentList();
   drawWheel();
 });
@@ -213,6 +233,5 @@ document.addEventListener('keydown', e => {
 
 spinBtn.addEventListener('click', spinWheel);
 
-// Init
 updateAgentList();
 drawWheel();
