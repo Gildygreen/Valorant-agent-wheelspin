@@ -11,6 +11,7 @@ const toggleAgentSounds = document.getElementById('toggleAgentSounds');
 const globalSoundSection = document.getElementById('globalSoundSection');
 const globalSelect = document.getElementById('globalWinSoundSelect');
 const previewGlobalWinSound = document.getElementById('previewGlobalWinSound');
+const randomizeWinSoundsToggle = document.getElementById('randomizeWinSoundsToggle');  // Added toggle for randomizing sounds
 
 // List of available sounds in your `assets/sounds/` folder (this should be updated as per your files)
 const availableSounds = [
@@ -35,6 +36,7 @@ let agents = JSON.parse(localStorage.getItem('agents')) || [
 
 let useAgentSounds = JSON.parse(localStorage.getItem('useAgentSounds')) ?? true;
 let globalWinSoundPath = localStorage.getItem('globalWinSoundPath') || 'assets/sounds/win.mp3';
+let randomizeWinSounds = JSON.parse(localStorage.getItem('randomizeWinSounds')) ?? false;  // Track randomize option
 
 let startAngle = 0;
 let spinning = false;
@@ -124,11 +126,19 @@ function stopRotateWheel() {
   showWinnerBanner(winner);
 }
 
-// Play win sound
+// Play win sound (handles both per-agent sounds and random sounds)
 function playWinSound(agent) {
-  const soundToPlay = useAgentSounds && agent.winSounds.length > 0 ? 
-    agent.winSounds.find(sound => sound.isDefault).path : globalWinSoundPath;
-
+  let soundToPlay;
+  if (randomizeWinSounds) {
+    // Randomize the sound for this spin
+    const randomSound = agent.winSounds[Math.floor(Math.random() * agent.winSounds.length)];
+    soundToPlay = randomSound.path;
+  } else {
+    // Use default or selected sound
+    soundToPlay = useAgentSounds && agent.winSounds.length > 0 ?
+      agent.winSounds.find(sound => sound.isDefault).path : globalWinSoundPath;
+  }
+  
   new Audio(soundToPlay).play();
 }
 
@@ -191,40 +201,3 @@ function updateAgentList() {
   );
 
   document.querySelectorAll('.add-sound').forEach(btn =>
-    btn.addEventListener('click', e => {
-      const agentIndex = e.target.dataset.agent;
-      const newSound = { 
-        label: `Option ${agents[agentIndex].winSounds.length + 1}`,
-        path: '', 
-        isDefault: false 
-      };
-      agents[agentIndex].winSounds.push(newSound);
-      updateAgentList();
-    })
-  );
-
-  document.querySelectorAll('.remove-agent').forEach(btn =>
-    btn.addEventListener('click', e => {
-      agents.splice(e.target.dataset.index, 1);
-      updateAgentList();
-      drawWheel();
-    })
-  );
-}
-
-// Add agent
-document.getElementById('addAgent').addEventListener('click', () => {
-  agents.push({ name: 'New Agent', color: '#ffffff', img: '', winSounds: [{ label: 'Option 1', path: '', isDefault: true }] });
-  updateAgentList();
-  drawWheel();
-});
-
-// Save / load configuration
-document.getElementById('saveConfig').addEventListener('click', () => {
-  localStorage.setItem('agents', JSON.stringify(agents));
-  localStorage.setItem('useAgentSounds', JSON.stringify(useAgentSounds));
-  localStorage.setItem('globalWinSoundPath', globalWinSoundPath);
-  alert('Configuration Saved!');
-});
-
-document.getElementBy
