@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Valorant Wheel Spinner</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <!-- New Titles Section -->
@@ -14,36 +14,63 @@
   </div>
 
   <!-- Canvas for the wheel spinner -->
-  <canvas id="wheelCanvas" width="500" height="500"></canvas>
+  <div id="wheelContainer">
+    <canvas id="wheelCanvas" width="800" height="800"></canvas>
+    <div id="wheelMarker" aria-hidden="true"></div>
+  </div>
 
   <!-- Spin Button -->
   <div id="spinButtonContainer">
     <button id="spinButton">Spin the Wheel</button>
   </div>
 
-  <!-- Winner Banner -->
-  <div id="winnerBanner">
-    <img id="winnerImage" alt="Winner Image" />
-    <div id="winnerName"></div>
+  <!-- Winner modal (replaces banner) -->
+  <div id="winnerModal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <span id="closeWinner" class="close" role="button" aria-label="Close">&times;</span>
+      <h2 id="winnerModalName">Winner</h2>
+      <img id="winnerModalImage" alt="Winner Image" />
+      <div>
+        <label for="winnerCustomText">Custom text (shown in winner popup):</label>
+        <textarea id="winnerCustomText" rows="3" placeholder="Congrats!" style="width:100%"></textarea>
+      </div>
+      <div style="margin-top:12px; text-align:right;">
+        <button id="closeWinnerBtn">Close</button>
+      </div>
+    </div>
   </div>
 
   <!-- Agent list -->
   <div id="agentList"></div>
 
   <!-- Global sound section -->
-  <div id="globalSoundSection">
-    <label for="globalWinSoundSelect">Choose a global win sound:</label>
-    <select id="globalWinSoundSelect">
-      <option value="assets/sounds/jett.mp3">Jett Sound</option>
-      <option value="assets/sounds/phoenix.mp3">Phoenix Sound</option>
-      <option value="assets/sounds/sage.mp3">Sage Sound</option>
-    </select>
-    <button id="previewGlobalWinSound">🔊 Preview</button>
-  </div>
+  <!-- Settings cog and modal (sound/customization moved into modal) -->
+  <button id="settingsBtn" class="settings-btn" title="Settings">⚙️</button>
 
-  <!-- Randomize per-agent sound toggle -->
-  <div>
-    <input type="checkbox" id="randomizeWinSoundsToggle"> Randomize Per-Agent Win Sounds
+  <div id="settingsModal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <span id="closeSettings" class="close" role="button" aria-label="Close">&times;</span>
+      <h3>Sound & Customization</h3>
+
+      <div id="globalSoundSection">
+        <label for="globalWinSoundSelect">Choose a global win sound:</label>
+        <select id="globalWinSoundSelect">
+          <option value="assets/sounds/jett.mp3">Jett Sound</option>
+          <option value="assets/sounds/phoenix.mp3">Phoenix Sound</option>
+          <option value="assets/sounds/sage.mp3">Sage Sound</option>
+        </select>
+        <button id="previewGlobalWinSound">🔊 Preview</button>
+      </div>
+
+      <div>
+        <label><input type="checkbox" id="randomizeWinSoundsToggle"> Randomize Per-Agent Win Sounds</label>
+      </div>
+
+      <hr />
+      <div id="perAgentSettings">
+        <!-- Per-agent customization inputs filled dynamically -->
+      </div>
+    </div>
   </div>
 
   <script src="script.js"></script>
