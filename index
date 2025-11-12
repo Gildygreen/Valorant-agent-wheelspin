@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Valorant Agent Wheel</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="wheel-container">
+    <canvas id="wheelCanvas" width="500" height="500"></canvas>
+    <button id="spinButton">SPIN</button>
+  </div>
+
+  <div class="controls">
+    <h3>Customize</h3>
+    <input type="file" id="imageUpload" accept="image/*" multiple>
+    <input type="color" id="colorPicker" value="#ff4655">
+    <button id="saveConfig">Save Wheel Setup</button>
+  </div>
+
+  <audio id="spinSound" src="assets/sounds/spin.mp3"></audio>
+
+  <script src="script.js"></script>
+</body>
+</html>
