@@ -16,89 +16,122 @@ const settingsModal = document.getElementById('settingsModal');
 const closeSettings = document.getElementById('closeSettings');
 const perAgentSettingsDiv = document.getElementById('perAgentSettings');
 
-// List of agents (full list as of 2023)
+// List of agents (as of Nov 2025) — alphabetical
 let agents = [
-  { name: 'Jett', color: '#00bfff', img: '', winSounds: [
-      { label: 'Option 1', path: 'assets/sounds/jett.mp3', isDefault: true },
-      { label: 'Option 2', path: 'assets/sounds/jett2.mp3', isDefault: false }
-    ]
-  },
-  { name: 'Phoenix', color: '#ff4500', img: '', winSounds: [
-      { label: 'Option 1', path: 'assets/sounds/phoenix.mp3', isDefault: true },
-      { label: 'Option 2', path: 'assets/sounds/phoenix2.mp3', isDefault: false }
-    ]
-  },
-  { name: 'Sage', color: '#32cd32', img: '', winSounds: [
-      { label: 'Option 1', path: 'assets/sounds/sage.mp3', isDefault: true },
-      { label: 'Option 2', path: 'assets/sounds/sage2.mp3', isDefault: false }
-    ]
-  },
-  { name: 'Omen', color: '#660066', img: '', winSounds: [
-      { label: 'Option 1', path: 'assets/sounds/omen.mp3', isDefault: true },
-      { label: 'Option 2', path: 'assets/sounds/omen2.mp3', isDefault: false }
-    ]
-  },
-  { name: 'Breach', color: '#ff0000', img: '', winSounds: [
-      { label: 'Option 1', path: 'assets/sounds/breach.mp3', isDefault: true },
-      { label: 'Option 2', path: 'assets/sounds/breach2.mp3', isDefault: false }
-    ]
-  },
-  { name: 'Raze', color: '#ff6f00', img: '', winSounds: [
-      { label: 'Option 1', path: 'assets/sounds/raze.mp3', isDefault: true },
-      { label: 'Option 2', path: 'assets/sounds/raze2.mp3', isDefault: false }
-    ]
-  },
-  { name: 'Killjoy', color: '#ffaa00', img: '', winSounds: [
-      { label: 'Option 1', path: 'assets/sounds/killjoy.mp3', isDefault: true },
-      { label: 'Option 2', path: 'assets/sounds/killjoy2.mp3', isDefault: false }
-    ]
-  },
-  { name: 'Astra', color: '#9b4d96', img: '', winSounds: [
-      { label: 'Option 1', path: 'assets/sounds/astra.mp3', isDefault: true },
+  { name: 'Astra', color: '#2e005c', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/astra.mp3', isDefault: true } , 
       { label: 'Option 2', path: 'assets/sounds/astra2.mp3', isDefault: false }
-    ]
-  },
-  { name: 'Yoru', color: '#b7b7b7', img: '', winSounds: [
-      { label: 'Option 1', path: 'assets/sounds/yoru.mp3', isDefault: true },
-      { label: 'Option 2', path: 'assets/sounds/yoru2.mp3', isDefault: false }
-    ]
-  },
-  { name: 'Viper', color: '#00ff00', img: '', winSounds: [
-      { label: 'Option 1', path: 'assets/sounds/viper.mp3', isDefault: true },
-      { label: 'Option 2', path: 'assets/sounds/viper2.mp3', isDefault: false }
-    ]
-  },
-  { name: 'Skye', color: '#9fa3a9', img: '', winSounds: [
-      { label: 'Option 1', path: 'assets/sounds/skye.mp3', isDefault: true },
-      { label: 'Option 2', path: 'assets/sounds/skye2.mp3', isDefault: false }
-    ]
-  },
-  { name: 'Sova', color: '#00eaff', img: '', winSounds: [
-      { label: 'Option 1', path: 'assets/sounds/sova.mp3', isDefault: true },
-      { label: 'Option 2', path: 'assets/sounds/sova2.mp3', isDefault: false }
-    ]
-  },
-  { name: 'Reyna', color: '#8b008b', img: '', winSounds: [
-      { label: 'Option 1', path: 'assets/sounds/reyna.mp3', isDefault: true },
-      { label: 'Option 2', path: 'assets/sounds/reyna2.mp3', isDefault: false }
-    ]
-  },
-  { name: 'KAY/O', color: '#6e6e6e', img: '', winSounds: [
-      { label: 'Option 1', path: 'assets/sounds/kayo.mp3', isDefault: true },
-      { label: 'Option 2', path: 'assets/sounds/kayo2.mp3', isDefault: false }
-    ]
-  },
-  { name: 'Chamber', color: '#c0c0c0', img: '', winSounds: [
-      { label: 'Option 1', path: 'assets/sounds/chamber.mp3', isDefault: true },
+    ] },
+  { name: 'Breach', color: '#f08c29', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/breach.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/breach2.mp3', isDefault: false }
+    ] },
+  { name: 'Brimstone', color: '#9c8340', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/brimstone.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/brimstone2.mp3', isDefault: false }
+    ] },
+  { name: 'Chamber', color: '#ffff99', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/chamber.mp3', isDefault: true },
       { label: 'Option 2', path: 'assets/sounds/chamber2.mp3', isDefault: false }
-    ]
-  },
-  { name: 'Fade', color: '#3e0e6d', img: '', winSounds: [
-      { label: 'Option 1', path: 'assets/sounds/fade.mp3', isDefault: true },
+    ] },
+  { name: 'Clove', color: '#a06cc4ff', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/clove.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/clove2.mp3', isDefault: false }
+    ] },
+  { name: 'Cypher', color: '#7f7f7f', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/cypher.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/cypher2.mp3', isDefault: false }
+    ] },
+  { name: 'Deadlock', color: '#ccffff', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/deadlock.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/deadlock2.mp3', isDefault: false }
+    ] },
+  { name: 'Fade', color: '#1d1636', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/fade.mp3', isDefault: true },
       { label: 'Option 2', path: 'assets/sounds/fade2.mp3', isDefault: false }
-    ]
-  }
+    ] },
+  { name: 'Gekko', color: '#bae655', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/gekko.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/gekko2.mp3', isDefault: false }
+    ] },
+  { name: 'Harbor', color: '#11545e', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/harbor.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/harbor2.mp3', isDefault: false }
+    ] },
+  { name: 'Iso', color: '#6c00d6', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/iso.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/iso2.mp3', isDefault: false }
+    ] },
+  { name: 'Jett', color: '#bbd6f0', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/jett.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/jett2.mp3', isDefault: false }
+    ] },
+  { name: 'KAY/O', color: '#124da1', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/kayo.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/kayo2.mp3', isDefault: false }
+    ] },
+  { name: 'Killjoy', color: '#f7cb2d', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/killjoy.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/killjoy2.mp3', isDefault: false }
+    ] },
+  { name: 'Neon', color: '#1e4194', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/neon.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/neon2.mp3', isDefault: false }
+    ] },
+  { name: 'Omen', color: '#26195e', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/omen.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/omen2.mp3', isDefault: false }
+    ] },
+  { name: 'Phoenix', color: '#913d00', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/phoenix.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/phoenix2.mp3', isDefault: false }
+    ] },
+  { name: 'Raze', color: '#ffb366', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/raze.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/raze2.mp3', isDefault: false }
+    ] },
+  { name: 'Reyna', color: '#8610b5', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/reyna.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/reyna2.mp3', isDefault: false }
+    ] },
+  { name: 'Sage', color: '#00a38b', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/sage.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/sage2.mp3', isDefault: false }
+    ] },
+  { name: 'Skye', color: '#2ea646', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/skye.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/skye2.mp3', isDefault: false }
+    ] },
+  { name: 'Sova', color: '#7cabcc', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/sova.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/sova2.mp3', isDefault: false }
+    ] },
+  { name: 'Tejo', color: '#deca6f', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/tejo.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/tejo2.mp3', isDefault: false }
+    ] },
+  { name: 'Veto', color: '#4b8e9c', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/veto.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/veto2.mp3', isDefault: false }
+    ] },
+  { name: 'Viper', color: '#27c427', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/viper.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/viper2.mp3', isDefault: false }
+    ] },
+  { name: 'Vyse', color: '#6949d1', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/vyse.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/vyse2.mp3', isDefault: false }
+    ] },
+  { name: 'Waylay', color: '#0fd6ae', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/waylay.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/waylay2.mp3', isDefault: false }
+    ] },
+  { name: 'Yoru', color: '#1a1a91', img: '', winSounds: [
+      { label: 'Default', path: 'assets/sounds/yoru.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/yoru2.mp3', isDefault: false }
+    ] }
 ];
+
 
 // Store user preferences
 let useAgentSounds = JSON.parse(localStorage.getItem('useAgentSounds')) ?? true;
@@ -113,68 +146,7 @@ function rgbToHex(r, g, b) {
   return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
 }
 
-// Get dominant color of an image URL by drawing to a small canvas and counting quantized colors
-async function getDominantColor(imageUrl) {
-  return new Promise((resolve) => {
-    try {
-      const img = new Image();
-      img.crossOrigin = 'Anonymous';
-      img.src = imageUrl;
-      img.onload = () => {
-        const w = 40, h = 40;
-        const tmp = document.createElement('canvas');
-        tmp.width = w; tmp.height = h;
-        const tctx = tmp.getContext('2d');
-        tctx.drawImage(img, 0, 0, w, h);
-        const data = tctx.getImageData(0,0,w,h).data;
-        const counts = {};
-        for (let i = 0; i < data.length; i += 4) {
-          // quantize by reducing color resolution
-          const r = Math.round(data[i] / 16) * 16;
-          const g = Math.round(data[i+1] / 16) * 16;
-          const b = Math.round(data[i+2] / 16) * 16;
-          const key = r+','+g+','+b;
-          counts[key] = (counts[key] || 0) + 1;
-        }
-        let best = null, bestCount = 0;
-        for (const k in counts) {
-          if (counts[k] > bestCount) { best = k; bestCount = counts[k]; }
-        }
-        if (!best) return resolve('#888888');
-        const [r,g,b] = best.split(',').map(Number);
-        resolve(rgbToHex(r,g,b));
-      };
-      img.onerror = () => resolve('#888888');
-    } catch (e) { resolve('#888888'); }
-  });
-}
-
-// Compute dominant color from an already-loaded Image element
-function getDominantColorFromImage(img) {
-  try {
-    const w = 40, h = 40;
-    const tmp = document.createElement('canvas');
-    tmp.width = w; tmp.height = h;
-    const tctx = tmp.getContext('2d');
-    tctx.drawImage(img, 0, 0, w, h);
-    const data = tctx.getImageData(0,0,w,h).data;
-    const counts = {};
-    for (let i = 0; i < data.length; i += 4) {
-      const r = Math.round(data[i] / 16) * 16;
-      const g = Math.round(data[i+1] / 16) * 16;
-      const b = Math.round(data[i+2] / 16) * 16;
-      const key = r+','+g+','+b;
-      counts[key] = (counts[key] || 0) + 1;
-    }
-    let best = null, bestCount = 0;
-    for (const k in counts) {
-      if (counts[k] > bestCount) { best = k; bestCount = counts[k]; }
-    }
-    if (!best) return '#888888';
-    const [r,g,b] = best.split(',').map(Number);
-    return rgbToHex(r,g,b);
-  } catch (e) { return '#888888'; }
-}
+// (Removed dominant-color extraction functions.)
 
 // Deterministic, vibrant color generator from a string (HSL -> hex) to avoid near-black colors
 function hslToHex(h, s, l) {
@@ -259,6 +231,32 @@ function drawWheel() {
     }
     // no agent name rendering (per request)
   });
+
+  // Draw marker triangle at top, overlapping the wheel halfway
+  try {
+    const triWidth = Math.max(12, Math.floor(radius * 0.06)); // half-base
+    const triHeight = Math.max(16, Math.floor(triWidth * 1.2));
+    const tipX = centerX;
+    const tipY = centerY - radius + (triHeight / 2); // tip placed half inside the wheel
+    const leftX = tipX - triWidth;
+    const leftY = tipY - triHeight;
+    const rightX = tipX + triWidth;
+    const rightY = leftY;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(leftX, leftY);
+    ctx.lineTo(rightX, rightY);
+    ctx.closePath();
+    ctx.fillStyle = '#ffcc00';
+    ctx.shadowColor = 'rgba(0,0,0,0.4)';
+    ctx.shadowBlur = 6;
+    ctx.fill();
+    ctx.restore();
+  } catch (e) {
+    // ignore marker render errors
+  }
 }
 
 // Resize canvas to match CSS size and device pixel ratio
@@ -307,8 +305,8 @@ function spinWheel() {
 // Stop and select winner
 function stopRotateWheel() {
   const arc = Math.PI * 2 / agents.length;
-  // Marker points downwards (angle = +Math.PI/2). Find which slice covers that absolute angle
-  const pointerAngle = Math.PI / 2; // downward pointing marker
+  // Marker is at the top, pointing downwards (angle = -Math.PI/2). Find which slice covers that absolute angle
+  const pointerAngle = -Math.PI / 2; // top marker pointing downwards
   // normalize startAngle to [0, 2PI)
   const normStart = ((startAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
   // compute angle of pointer relative to wheel rotation
@@ -371,10 +369,11 @@ if (randomizeWinSoundsToggle) {
 }
 
 // Attach spin button
-if (spinBtn) {
-  spinBtn.addEventListener('click', () => {
-    if (!spinning) {
-      spinBtn.disabled = true;
+// Allow clicking the wheel canvas to spin
+if (canvas) {
+  canvas.addEventListener('click', (e) => {
+    // ignore clicks if spinning
+    if (!spinning && agents.length > 0) {
       spinWheel();
     }
   });
@@ -476,46 +475,27 @@ async function loadAgentsFromValorantApi() {
       winSounds: []
     }));
 
-    // Preload images and compute colors reliably
+    // Preload images; use colors from the local `agents` list when available, otherwise fall back to a generated color
     const loads = fetched.map(async (f) => {
       const existing = agents.find(x => x.name.toLowerCase() === f.name.toLowerCase());
-      if (existing) f.winSounds = existing.winSounds;
-          if (f.img) {
-            // Try loading with CORS first (so getImageData can be used). If that fails,
-            // retry without CORS so the image still displays (but canvas may be tainted).
-            let img = new Image();
-            img.crossOrigin = 'Anonymous';
-            let loaded = await new Promise((resolve) => {
-              let done = false;
-              img.onload = () => { if (!done) { done = true; resolve(true); } };
-              img.onerror = () => { if (!done) { done = false; resolve(false); } };
-              img.src = f.img;
-            });
+      if (existing) {
+        f.winSounds = existing.winSounds;
+        if (existing.color) f.color = existing.color;
+      }
 
-            if (!loaded) {
-              // Retry without crossOrigin (this will load in many CDN cases but will taint canvas)
-              img = new Image();
-              await new Promise((resolve) => {
-                img.onload = () => resolve(true);
-                img.onerror = () => resolve(false);
-                img.src = f.img;
-              });
-            }
+      if (f.img) {
+        let img = new Image();
+        img.crossOrigin = 'Anonymous';
+        await new Promise((resolve) => {
+          img.onload = () => resolve(true);
+          img.onerror = () => resolve(false);
+          img.src = f.img;
+        });
+        f._image = img;
+      }
 
-            f._image = img;
-
-            // Try to compute dominant color; if getImageData is blocked, fallback to a name-based color
-            try {
-              const color = getDominantColorFromImage(img);
-              if (color) f.color = color;
-            } catch (e) {
-              // Fallback: deterministic color based on agent name
-              f.color = nameToColor(f.name);
-            }
-          } else {
-            // No image: use name-based color
-            f.color = nameToColor(f.name);
-          }
+      // Ensure a color exists: prefer listed color, otherwise fallback to name-based generator
+      if (!f.color) f.color = nameToColor(f.name);
     });
 
     await Promise.all(loads);

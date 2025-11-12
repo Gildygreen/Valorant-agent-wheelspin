@@ -30,12 +30,13 @@ body {
 /* Canvas (Wheel) */
 canvas {
   margin-top: 30px;
-  border: 5px solid #444;
   border-radius: 10px;
   width: 90vw;
   max-width: 800px;
   height: auto;
 }
+  /* Make canvas show a pointer cursor to indicate it's clickable */
+  canvas { cursor: pointer; }
 
 #wheelContainer {
   position: relative;
@@ -45,20 +46,9 @@ canvas {
 }
 
 /* Marker (pointer) */
-/* Marker pointer placed at bottom and pointing downwards */
-#wheelMarker {
-  position: absolute;
-  bottom: -18px; /* place at the edge of the wheel */
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 14px solid transparent;
-  border-right: 14px solid transparent;
-  border-top: 20px solid #ffcc00; /* point downwards */
-  z-index: 5;
-  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.4));
-}
+/* Marker pointer placed at top and pointing downwards, overlapping halfway onto the wheel */
+/* marker DOM element hidden — marker is drawn on canvas */
+#wheelMarker { display: none; }
 
 /* Winner modal (re-use .modal/.modal-content styles defined earlier) */
 #winnerModal .modal-content {
