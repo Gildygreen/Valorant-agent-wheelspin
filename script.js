@@ -201,3 +201,17 @@ function updateAgentList() {
   );
 
   document.querySelectorAll('.add-sound').forEach(btn =>
+    btn.addEventListener('click', e => {
+      const agentIndex = e.target.dataset.agent;
+      const newSound = { 
+        label: `Option ${agents[agentIndex].winSounds.length + 1}`,
+        path: '', 
+        isDefault: false 
+      };
+      agents[agentIndex].winSounds.push(newSound);
+      updateAgentList();
+    })
+  );
+
+  document.querySelectorAll('.remove-agent').forEach(btn =>
+    btn.add
