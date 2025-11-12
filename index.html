@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Valorant Agent Wheel</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="wheel-section">
+    <canvas id="wheelCanvas" width="500" height="500"></canvas>
+    <button id="spinButton">SPIN</button>
+  </div>
+
+  <div class="ui-panel">
+    <h2>🎨 Customize Your Wheel</h2>
+
+    <div class="agent-list" id="agentList"></div>
+    <button id="addAgent">+ Add Agent</button>
+    <hr>
+
+    <label>🎵 Spin Sound:</label>
+    <input type="file" id="soundUpload" accept="audio/*"><br>
+
+    <button id="saveConfig">💾 Save Setup</button>
+    <button id="loadConfig">📂 Load Setup</button>
+  </div>
+
+  <audio id="spinSound" src="assets/sounds/spin.mp3"></audio>
+  <audio id="winSound" src="assets/sounds/win.mp3"></audio>
+
+  <canvas id="confetti"></canvas>
+
+  <div id="winnerBanner" class="hidden">
+    <img id="winnerImage" alt="">
+    <h1 id="winnerName"></h1>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
