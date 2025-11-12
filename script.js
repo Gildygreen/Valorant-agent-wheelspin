@@ -1,21 +1,36 @@
 const canvas = document.getElementById('wheelCanvas');
 const ctx = canvas.getContext('2d');
 const spinBtn = document.getElementById('spinButton');
-const agentListDiv = document.getElementById('agentList');
 const spinSound = document.getElementById('spinSound');
 const defaultWinSound = document.getElementById('defaultWinSound');
 const winnerBanner = document.getElementById('winnerBanner');
 const winnerName = document.getElementById('winnerName');
 const winnerImage = document.getElementById('winnerImage');
+const agentListDiv = document.getElementById('agentList');
 const toggleAgentSounds = document.getElementById('toggleAgentSounds');
 const globalSoundSection = document.getElementById('globalSoundSection');
-const globalWinSoundUpload = document.getElementById('globalWinSoundUpload');
+const globalSelect = document.getElementById('globalWinSoundSelect');
 const previewGlobalWinSound = document.getElementById('previewGlobalWinSound');
 
+// List of available sounds in your `assets/sounds/` folder (this should be updated as per your files)
+const availableSounds = [
+  'assets/sounds/jett.mp3',
+  'assets/sounds/phoenix.mp3',
+  'assets/sounds/sage.mp3',
+  'assets/sounds/win.mp3'
+];
+
 let agents = JSON.parse(localStorage.getItem('agents')) || [
-  { name: 'Jett', color: '#00bfff', img: '', winSound: '' },
-  { name: 'Phoenix', color: '#ff4500', img: '', winSound: '' },
-  { name: 'Sage', color: '#00ff99', img: '', winSound: '' },
+  { name: 'Jett', color: '#00bfff', img: '', winSounds: [
+      { label: 'Option 1', path: 'assets/sounds/jett.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/jett2.mp3', isDefault: false }
+    ]
+  },
+  { name: 'Phoenix', color: '#ff4500', img: '', winSounds: [
+      { label: 'Option 1', path: 'assets/sounds/phoenix.mp3', isDefault: true },
+      { label: 'Option 2', path: 'assets/sounds/phoenix2.mp3', isDefault: false }
+    ]
+  }
 ];
 
 let useAgentSounds = JSON.parse(localStorage.getItem('useAgentSounds')) ?? true;
@@ -61,7 +76,7 @@ function drawWheel() {
     ctx.fillText(agent.name, 230, 10);
 
     // Draw speaker icon if per-agent sounds are enabled
-    if (useAgentSounds && agent.winSound) {
+    if (useAgentSounds && agent.winSounds.length > 0) {
       ctx.font = "bold 14px Poppins";
       ctx.fillText("🔊", 215, -5);
     }
@@ -111,11 +126,10 @@ function stopRotateWheel() {
 
 // Play win sound
 function playWinSound(agent) {
-  if (useAgentSounds && agent.winSound) {
-    new Audio(agent.winSound).play();
-  } else {
-    new Audio(globalWinSoundPath).play();
-  }
+  const soundToPlay = useAgentSounds && agent.winSounds.length > 0 ? 
+    agent.winSounds.find(sound => sound.isDefault).path : globalWinSoundPath;
+
+  new Audio(soundToPlay).play();
 }
 
 // Animation easing
@@ -142,47 +156,53 @@ function updateAgentList() {
       <input type="text" value="${agent.name}" data-index="${i}" class="agent-name">
       <input type="color" value="${agent.color}" data-index="${i}" class="agent-color">
       <input type="file" accept="image/*" data-index="${i}" class="agent-img">
-      <input type="file" accept="audio/*" data-index="${i}" class="agent-sound">
-      <button data-index="${i}" class="preview-sound">🔊</button>
-      <button data-index="${i}" class="remove-agent">🗑️</button>
+      <div class="sound-list">
+        ${agent.winSounds.map((sound, idx) => `
+          <div class="sound-option">
+            <span>${sound.label}</span>
+            <button class="preview-sound" data-agent="${i}" data-index="${idx}">🔊 Preview</button>
+            <button class="select-sound" data-agent="${i}" data-index="${idx}">${sound.isDefault ? '✔️ Default' : 'Select'}</button>
+          </div>
+        `).join('')}
+        <button class="add-sound" data-agent="${i}">+ Add Sound</button>
+      </div>
+      <button data-index="${i}" class="remove-agent">🗑️ Remove</button>
     `;
     agentListDiv.appendChild(row);
   });
 
-  document.querySelectorAll('.agent-name').forEach(input =>
-    input.addEventListener('input', e => agents[e.target.dataset.index].name = e.target.value)
-  );
-  document.querySelectorAll('.agent-color').forEach(input =>
-    input.addEventListener('input', e => agents[e.target.dataset.index].color = e.target.value)
-  );
-  document.querySelectorAll('.agent-img').forEach(input =>
-    input.addEventListener('change', e => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = () => agents[e.target.dataset.index].img = reader.result;
-        reader.readAsDataURL(file);
-        drawWheel();
-      }
-    })
-  );
-  document.querySelectorAll('.agent-sound').forEach(input =>
-    input.addEventListener('change', e => {
-      const file = e.target.files[0];
-      if (file) {
-        const url = URL.createObjectURL(file);
-        agents[e.target.dataset.index].winSound = url;
-        drawWheel();
-      }
-    })
-  );
   document.querySelectorAll('.preview-sound').forEach(btn =>
     btn.addEventListener('click', e => {
-      const agent = agents[e.target.dataset.index];
-      if (agent.winSound) new Audio(agent.winSound).play();
-      else alert(`No sound uploaded for ${agent.name}`);
+      const agentIndex = e.target.dataset.agent;
+      const soundIndex = e.target.dataset.index;
+      new Audio(agents[agentIndex].winSounds[soundIndex].path).play();
     })
   );
+
+  document.querySelectorAll('.select-sound').forEach(btn =>
+    btn.addEventListener('click', e => {
+      const agentIndex = e.target.dataset.agent;
+      const soundIndex = e.target.dataset.index;
+      agents[agentIndex].winSounds.forEach((sound, idx) => {
+        sound.isDefault = idx === soundIndex;  // Set only the clicked sound as default
+      });
+      updateAgentList();  // Re-render to reflect changes
+    })
+  );
+
+  document.querySelectorAll('.add-sound').forEach(btn =>
+    btn.addEventListener('click', e => {
+      const agentIndex = e.target.dataset.agent;
+      const newSound = { 
+        label: `Option ${agents[agentIndex].winSounds.length + 1}`,
+        path: '', 
+        isDefault: false 
+      };
+      agents[agentIndex].winSounds.push(newSound);
+      updateAgentList();
+    })
+  );
+
   document.querySelectorAll('.remove-agent').forEach(btn =>
     btn.addEventListener('click', e => {
       agents.splice(e.target.dataset.index, 1);
@@ -194,7 +214,7 @@ function updateAgentList() {
 
 // Add agent
 document.getElementById('addAgent').addEventListener('click', () => {
-  agents.push({ name: 'New Agent', color: '#ffffff', img: '', winSound: '' });
+  agents.push({ name: 'New Agent', color: '#ffffff', img: '', winSounds: [{ label: 'Option 1', path: '', isDefault: true }] });
   updateAgentList();
   drawWheel();
 });
@@ -204,88 +224,7 @@ document.getElementById('saveConfig').addEventListener('click', () => {
   localStorage.setItem('agents', JSON.stringify(agents));
   localStorage.setItem('useAgentSounds', JSON.stringify(useAgentSounds));
   localStorage.setItem('globalWinSoundPath', globalWinSoundPath);
-  alert('Saved!');
+  alert('Configuration Saved!');
 });
 
-document.getElementById('loadConfig').addEventListener('click', () => {
-  const savedAgents = localStorage.getItem('agents');
-  const savedUseAgentSounds = localStorage.getItem('useAgentSounds');
-  const savedGlobalPath = localStorage.getItem('globalWinSoundPath');
-
-  if (savedAgents) agents = JSON.parse(savedAgents);
-  if (savedUseAgentSounds) useAgentSounds = JSON.parse(savedUseAgentSounds);
-  if (savedGlobalPath) globalWinSoundPath = savedGlobalPath;
-
-  toggleAgentSounds.checked = useAgentSounds;
-  globalSoundSection.style.opacity = useAgentSounds ? '0.4' : '1';
-  updateAgentList();
-  drawWheel();
-});
-
-// Per-agent toggle
-toggleAgentSounds.addEventListener('change', () => {
-  useAgentSounds = toggleAgentSounds.checked;
-  globalSoundSection.style.opacity = useAgentSounds ? '0.4' : '1';
-  drawWheel();
-});
-
-// Global win sound upload
-globalWinSoundUpload.addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (file) {
-    globalWinSoundPath = URL.createObjectURL(file);
-  }
-});
-
-// Preview global sound
-previewGlobalWinSound.addEventListener('click', () => {
-  new Audio(globalWinSoundPath).play();
-});
-
-// Spin sound upload
-document.getElementById('spinSoundUpload').addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (file) spinSound.src = URL.createObjectURL(file);
-});
-
-// Confetti celebration
-const confettiCanvas = document.getElementById('confetti');
-const confettiCtx = confettiCanvas.getContext('2d');
-confettiCanvas.width = window.innerWidth;
-confettiCanvas.height = window.innerHeight;
-
-function confettiBurst() {
-  const particles = Array.from({ length: 100 }, () => ({
-    x: Math.random() * confettiCanvas.width,
-    y: 0,
-    r: Math.random() * 6 + 4,
-    c: `hsl(${Math.random() * 360}, 100%, 60%)`,
-    v: Math.random() * 5 + 2
-  }));
-
-  function draw() {
-    confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-    particles.forEach(p => {
-      p.y += p.v;
-      confettiCtx.beginPath();
-      confettiCtx.arc(p.x, p.y, p.r, 0, 2 * Math.PI);
-      confettiCtx.fillStyle = p.c;
-      confettiCtx.fill();
-    });
-    if (particles[0].y < confettiCanvas.height) requestAnimationFrame(draw);
-  }
-  draw();
-}
-
-// Hotkey support
-document.addEventListener('keydown', e => {
-  if (e.code === 'Space') spinWheel();
-});
-
-spinBtn.addEventListener('click', spinWheel);
-
-// Init
-toggleAgentSounds.checked = useAgentSounds;
-globalSoundSection.style.opacity = useAgentSounds ? '0.4' : '1';
-updateAgentList();
-drawWheel();
+document.getElementBy
