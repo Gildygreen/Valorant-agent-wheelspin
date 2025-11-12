@@ -11,7 +11,7 @@ const toggleAgentSounds = document.getElementById('toggleAgentSounds');
 const globalSoundSection = document.getElementById('globalSoundSection');
 const globalSelect = document.getElementById('globalWinSoundSelect');
 const previewGlobalWinSound = document.getElementById('previewGlobalWinSound');
-const randomizeWinSoundsToggle = document.getElementById('randomizeWinSoundsToggle');  // Added toggle for randomizing sounds
+const randomizeWinSoundsToggle = document.getElementById('randomizeWinSoundsToggle');
 
 // List of available sounds in your `assets/sounds/` folder (this should be updated as per your files)
 const availableSounds = [
@@ -36,7 +36,7 @@ let agents = JSON.parse(localStorage.getItem('agents')) || [
 
 let useAgentSounds = JSON.parse(localStorage.getItem('useAgentSounds')) ?? true;
 let globalWinSoundPath = localStorage.getItem('globalWinSoundPath') || 'assets/sounds/win.mp3';
-let randomizeWinSounds = JSON.parse(localStorage.getItem('randomizeWinSounds')) ?? false;  // Track randomize option
+let randomizeWinSounds = JSON.parse(localStorage.getItem('randomizeWinSounds')) ?? false;
 
 let startAngle = 0;
 let spinning = false;
@@ -55,7 +55,6 @@ function drawWheel() {
     ctx.lineTo(250, 250);
     ctx.fill();
 
-    // Agent image
     if (agent.img) {
       const img = new Image();
       img.src = agent.img;
@@ -68,7 +67,6 @@ function drawWheel() {
       };
     }
 
-    // Agent name + sound icon
     ctx.save();
     ctx.translate(250, 250);
     ctx.rotate(angle + arc / 2);
@@ -77,7 +75,6 @@ function drawWheel() {
     ctx.textAlign = "right";
     ctx.fillText(agent.name, 230, 10);
 
-    // Draw speaker icon if per-agent sounds are enabled
     if (useAgentSounds && agent.winSounds.length > 0) {
       ctx.font = "bold 14px Poppins";
       ctx.fillText("🔊", 215, -5);
@@ -117,101 +114,4 @@ function spinWheel() {
 // Stop and select winner
 function stopRotateWheel() {
   const arc = Math.PI * 2 / agents.length;
-  const degrees = startAngle * 180 / Math.PI + 90;
-  const index = Math.floor((360 - (degrees % 360)) / (360 / agents.length)) % agents.length;
-  const winner = agents[index];
-
-  playWinSound(winner);
-  confettiBurst();
-  showWinnerBanner(winner);
-}
-
-// Play win sound (handles both per-agent sounds and random sounds)
-function playWinSound(agent) {
-  let soundToPlay;
-  if (randomizeWinSounds) {
-    // Randomize the sound for this spin
-    const randomSound = agent.winSounds[Math.floor(Math.random() * agent.winSounds.length)];
-    soundToPlay = randomSound.path;
-  } else {
-    // Use default or selected sound
-    soundToPlay = useAgentSounds && agent.winSounds.length > 0 ?
-      agent.winSounds.find(sound => sound.isDefault).path : globalWinSoundPath;
-  }
-  
-  new Audio(soundToPlay).play();
-}
-
-// Animation easing
-function easeOutQuad(t, b, c, d) {
-  t /= d;
-  return -c * t * (t - 2) + b;
-}
-
-// Winner overlay
-function showWinnerBanner(agent) {
-  winnerName.textContent = agent.name;
-  winnerImage.src = agent.img || 'https://upload.wikimedia.org/wikipedia/en/5/53/Valorant_icon.png';
-  winnerBanner.classList.add('show');
-  setTimeout(() => winnerBanner.classList.remove('show'), 5000);
-}
-
-// Agent list UI
-function updateAgentList() {
-  agentListDiv.innerHTML = '';
-  agents.forEach((agent, i) => {
-    const row = document.createElement('div');
-    row.className = 'agent-row';
-    row.innerHTML = `
-      <input type="text" value="${agent.name}" data-index="${i}" class="agent-name">
-      <input type="color" value="${agent.color}" data-index="${i}" class="agent-color">
-      <input type="file" accept="image/*" data-index="${i}" class="agent-img">
-      <div class="sound-list">
-        ${agent.winSounds.map((sound, idx) => `
-          <div class="sound-option">
-            <span>${sound.label}</span>
-            <button class="preview-sound" data-agent="${i}" data-index="${idx}">🔊 Preview</button>
-            <button class="select-sound" data-agent="${i}" data-index="${idx}">${sound.isDefault ? '✔️ Default' : 'Select'}</button>
-          </div>
-        `).join('')}
-        <button class="add-sound" data-agent="${i}">+ Add Sound</button>
-      </div>
-      <button data-index="${i}" class="remove-agent">🗑️ Remove</button>
-    `;
-    agentListDiv.appendChild(row);
-  });
-
-  document.querySelectorAll('.preview-sound').forEach(btn =>
-    btn.addEventListener('click', e => {
-      const agentIndex = e.target.dataset.agent;
-      const soundIndex = e.target.dataset.index;
-      new Audio(agents[agentIndex].winSounds[soundIndex].path).play();
-    })
-  );
-
-  document.querySelectorAll('.select-sound').forEach(btn =>
-    btn.addEventListener('click', e => {
-      const agentIndex = e.target.dataset.agent;
-      const soundIndex = e.target.dataset.index;
-      agents[agentIndex].winSounds.forEach((sound, idx) => {
-        sound.isDefault = idx === soundIndex;  // Set only the clicked sound as default
-      });
-      updateAgentList();  // Re-render to reflect changes
-    })
-  );
-
-  document.querySelectorAll('.add-sound').forEach(btn =>
-    btn.addEventListener('click', e => {
-      const agentIndex = e.target.dataset.agent;
-      const newSound = { 
-        label: `Option ${agents[agentIndex].winSounds.length + 1}`,
-        path: '', 
-        isDefault: false 
-      };
-      agents[agentIndex].winSounds.push(newSound);
-      updateAgentList();
-    })
-  );
-
-  document.querySelectorAll('.remove-agent').forEach(btn =>
-    btn.add
+  const
