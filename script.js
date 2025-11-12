@@ -30,7 +30,7 @@ function drawWheel() {
     ctx.lineTo(250, 250);
     ctx.fill();
 
-    // Image
+    // Agent image
     if (agent.img) {
       const img = new Image();
       img.src = agent.img;
@@ -43,7 +43,7 @@ function drawWheel() {
       };
     }
 
-    // Text
+    // Agent name
     ctx.save();
     ctx.translate(250, 250);
     ctx.rotate(angle + arc / 2);
@@ -127,11 +127,13 @@ function updateAgentList() {
       <input type="color" value="${agent.color}" data-index="${i}" class="agent-color">
       <input type="file" accept="image/*" data-index="${i}" class="agent-img">
       <input type="file" accept="audio/*" data-index="${i}" class="agent-sound">
+      <button data-index="${i}" class="preview-sound" title="Preview Sound">🔊</button>
       <button data-index="${i}" class="remove-agent">🗑️</button>
     `;
     agentListDiv.appendChild(row);
   });
 
+  // Update listeners
   document.querySelectorAll('.agent-name').forEach(input =>
     input.addEventListener('input', e => agents[e.target.dataset.index].name = e.target.value)
   );
@@ -158,6 +160,22 @@ function updateAgentList() {
       }
     })
   );
+
+  // 🔊 Preview Sound Button
+  document.querySelectorAll('.preview-sound').forEach(btn =>
+    btn.addEventListener('click', e => {
+      const index = e.target.dataset.index;
+      const agent = agents[index];
+      if (agent.winSound) {
+        const audio = new Audio(agent.winSound);
+        audio.play();
+      } else {
+        alert(`No win sound uploaded for ${agent.name}.`);
+      }
+    })
+  );
+
+  // Remove agent button
   document.querySelectorAll('.remove-agent').forEach(btn =>
     btn.addEventListener('click', e => {
       agents.splice(e.target.dataset.index, 1);
@@ -233,5 +251,6 @@ document.addEventListener('keydown', e => {
 
 spinBtn.addEventListener('click', spinWheel);
 
+// Init
 updateAgentList();
 drawWheel();
