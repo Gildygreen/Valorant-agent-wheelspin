@@ -16,10 +16,25 @@
 
     <div class="agent-list" id="agentList"></div>
     <button id="addAgent">+ Add Agent</button>
+
     <hr>
 
-    <label>🎵 Global Spin Sound:</label>
-    <input type="file" id="soundUpload" accept="audio/*"><br>
+    <div>
+      <label>
+        <input type="checkbox" id="toggleAgentSounds" checked>
+        Enable per-agent win sounds
+      </label>
+    </div>
+
+    <div id="globalSoundSection">
+      <label>🎵 Global Win Sound:</label>
+      <input type="file" id="globalWinSoundUpload" accept="audio/*"><br>
+      <button id="previewGlobalWinSound">🔊 Preview Global Sound</button>
+    </div>
+
+    <hr>
+    <label>🎶 Spin Sound:</label>
+    <input type="file" id="spinSoundUpload" accept="audio/*"><br>
 
     <button id="saveConfig">💾 Save Setup</button>
     <button id="loadConfig">📂 Load Setup</button>
