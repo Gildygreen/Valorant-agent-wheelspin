@@ -2,55 +2,50 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Valorant Agent Wheel</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Valorant Wheel Spinner</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="wheel-section">
-    <canvas id="wheelCanvas" width="500" height="500"></canvas>
-    <button id="spinButton">SPIN</button>
+  <!-- New Titles Section -->
+  <div id="title-section">
+    <h1 id="main-title">Valorant Agents</h1>
+    <h2 id="subtitle">by Gildygreen</h2>
   </div>
 
-  <div class="ui-panel">
-    <h2>🎨 Customize Your Wheel</h2>
+  <!-- Canvas for the wheel spinner -->
+  <canvas id="wheelCanvas" width="500" height="500"></canvas>
 
-    <div class="agent-list" id="agentList"></div>
-    <button id="addAgent">+ Add Agent</button>
-
-    <hr>
-
-    <div>
-      <label>
-        <input type="checkbox" id="toggleAgentSounds" checked>
-        Enable per-agent win sounds
-      </label>
-    </div>
-
-    <div id="globalSoundSection">
-      <label>🎵 Global Win Sound:</label>
-      <input type="file" id="globalWinSoundUpload" accept="audio/*"><br>
-      <button id="previewGlobalWinSound">🔊 Preview Global Sound</button>
-    </div>
-
-    <hr>
-    <label>🎶 Spin Sound:</label>
-    <input type="file" id="spinSoundUpload" accept="audio/*"><br>
-
-    <button id="saveConfig">💾 Save Setup</button>
-    <button id="loadConfig">📂 Load Setup</button>
+  <!-- Spin Button -->
+  <div id="spinButtonContainer">
+    <button id="spinButton">Spin the Wheel</button>
   </div>
 
-  <audio id="spinSound" src="assets/sounds/spin.mp3"></audio>
-  <audio id="defaultWinSound" src="assets/sounds/win.mp3"></audio>
+  <!-- Winner Banner -->
+  <div id="winnerBanner">
+    <img id="winnerImage" alt="Winner Image" />
+    <div id="winnerName"></div>
+  </div>
 
-  <canvas id="confetti"></canvas>
+  <!-- Agent list -->
+  <div id="agentList"></div>
 
-  <div id="winnerBanner" class="hidden">
-    <img id="winnerImage" alt="">
-    <h1 id="winnerName"></h1>
+  <!-- Global sound section -->
+  <div id="globalSoundSection">
+    <label for="globalWinSoundSelect">Choose a global win sound:</label>
+    <select id="globalWinSoundSelect">
+      <option value="assets/sounds/jett.mp3">Jett Sound</option>
+      <option value="assets/sounds/phoenix.mp3">Phoenix Sound</option>
+      <option value="assets/sounds/sage.mp3">Sage Sound</option>
+    </select>
+    <button id="previewGlobalWinSound">🔊 Preview</button>
+  </div>
+
+  <!-- Randomize per-agent sound toggle -->
+  <div>
+    <input type="checkbox" id="randomizeWinSoundsToggle"> Randomize Per-Agent Win Sounds
   </div>
 
   <script src="script.js"></script>
 </body>
 </html>
-
