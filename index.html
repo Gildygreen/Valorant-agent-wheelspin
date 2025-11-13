@@ -25,6 +25,13 @@
     </button>
   </nav>
 
+  <!-- Team results feed (slides in entries from the left) -->
+  <aside id="teamFeed" class="team-feed" aria-live="polite"></aside>
+  <div class="team-feed-controls hidden">
+    <button id="teamCopyProofBtn" class="team-feed-copy modal-button" type="button" title="Copy team proof image" aria-label="Copy team proof image" disabled>⧉ Copy</button>
+    <button id="teamFeedCloseBtn" class="team-feed-close modal-button" type="button" title="Hide team results" aria-label="Hide team results" disabled>✕ Hide</button>
+  </div>
+
   <!-- Canvas for the wheel spinner -->
   <div id="wheelContainer" class="loading">
     <div id="wheelLoading" class="wheel-loading" role="status" aria-live="polite">
@@ -60,6 +67,7 @@
   <!-- Sound settings -->
   <!-- Settings cog and modal (sound/customization moved into modal) -->
   <button id="settingsBtn" class="settings-btn loading-gated" title="Settings">⚙️</button>
+  <button id="teamsBtn" class="settings-btn loading-gated teams-btn" title="Teams">👥</button>
 
   <div id="settingsModal" class="modal" aria-hidden="true">
     <div class="modal-content settings-modal">
@@ -127,6 +135,105 @@
           <div id="perAgentSettings">
             <!-- Per-agent customization inputs filled dynamically -->
           </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Teams modal -->
+  <div id="teamsModal" class="modal" aria-hidden="true">
+    <div class="modal-content settings-modal">
+      <span id="closeTeams" class="close" role="button" aria-label="Close">&times;</span>
+      <h3>Team Roll</h3>
+
+      <div class="settings-layout">
+        <section class="settings-section wide">
+          <div class="setting-row">
+            <label class="slider-label" for="teamNameInput">Team name</label>
+            <input type="text" id="teamNameInput" placeholder="My Stack" />
+          </div>
+
+          <div id="teamPlayers" class="team-form">
+            <!-- Five player rows -->
+            <div class="team-player-row">
+              <input type="text" class="team-player-name" placeholder="Player 1" />
+              <select class="team-player-role">
+                <option value="">Role…</option>
+                <option>Controller</option>
+                <option>Duelist</option>
+                <option>Initiator</option>
+                <option>Sentinel</option>
+              </select>
+            </div>
+            <div class="team-player-row">
+              <input type="text" class="team-player-name" placeholder="Player 2" />
+              <select class="team-player-role">
+                <option value="">Role…</option>
+                <option>Controller</option>
+                <option>Duelist</option>
+                <option>Initiator</option>
+                <option>Sentinel</option>
+              </select>
+            </div>
+            <div class="team-player-row">
+              <input type="text" class="team-player-name" placeholder="Player 3" />
+              <select class="team-player-role">
+                <option value="">Role…</option>
+                <option>Controller</option>
+                <option>Duelist</option>
+                <option>Initiator</option>
+                <option>Sentinel</option>
+              </select>
+            </div>
+            <div class="team-player-row">
+              <input type="text" class="team-player-name" placeholder="Player 4" />
+              <select class="team-player-role">
+                <option value="">Role…</option>
+                <option>Controller</option>
+                <option>Duelist</option>
+                <option>Initiator</option>
+                <option>Sentinel</option>
+              </select>
+            </div>
+            <div class="team-player-row">
+              <input type="text" class="team-player-name" placeholder="Player 5" />
+              <select class="team-player-role">
+                <option value="">Role…</option>
+                <option>Controller</option>
+                <option>Duelist</option>
+                <option>Initiator</option>
+                <option>Sentinel</option>
+              </select>
+            </div>
+          </div>
+
+          <h4 style="margin-top:10px">Team Role Composition</h4>
+          <div id="teamComposition" class="team-comp">
+            <label class="slider-label" for="compController">Controllers</label>
+            <input type="number" id="compController" min="0" max="5" step="1" value="0" />
+            <label class="slider-label" for="compDuelist">Duelists</label>
+            <input type="number" id="compDuelist" min="0" max="5" step="1" value="0" />
+            <label class="slider-label" for="compInitiator">Initiators</label>
+            <input type="number" id="compInitiator" min="0" max="5" step="1" value="0" />
+            <label class="slider-label" for="compSentinel">Sentinels</label>
+            <input type="number" id="compSentinel" min="0" max="5" step="1" value="0" />
+            <div class="settings-subtitle" style="grid-column: 1 / -1;">Unspecified slots will be filled with Any.</div>
+          </div>
+
+          <label class="toggle-label" style="margin-top:8px">
+            <input type="checkbox" id="teamRandomizeRoles">
+            Randomize roles among teammates
+          </label>
+
+          <div class="team-actions">
+            <select id="savedTeamsSelect" title="Saved teams"></select>
+            <button id="teamNewBtn" class="modal-button" type="button">New</button>
+            <button id="teamSaveBtn" class="modal-button" type="button">Save</button>
+            <button id="teamDeleteBtn" class="modal-button" type="button">Delete</button>
+            <button id="teamRollBtn" class="modal-button" type="button">Roll Team</button>
+          </div>
+
+          <div id="teamResults" class="team-results" aria-live="polite"></div>
         </section>
       </div>
     </div>
