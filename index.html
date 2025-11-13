@@ -51,15 +51,28 @@
       <h3>Spin & Audio Settings</h3>
 
       <div class="settings-layout">
+        <section class="settings-section" id="optionsSection">
+          <h4>Options</h4>
+          <div class="setting-row">
+            <label class="slider-label" for="usernameInput">Username</label>
+            <input type="text" id="usernameInput" placeholder="Optional: show your name in results" />
+          </div>
+          <div class="setting-row">
+            <label class="slider-label" for="pointerColor">Pointer color</label>
+            <input type="color" id="pointerColor" value="#ffd45c" />
+          </div>
+        </section>
+
         <section class="settings-section" id="audioSection">
           <h4>Audio</h4>
           <p class="settings-subtitle">Configure win lines, ticks and drumroll in one place.</p>
-
+          
           <div class="setting-row">
             <label class="toggle-label">
               <input type="checkbox" id="randomizeWinSoundsToggle">
               Randomize available voice lines
             </label>
+
             <div class="slider-label">
               <span>Agent win volume</span>
               <strong id="agentVolumeLabel">50%</strong>
@@ -89,15 +102,6 @@
               <input type="checkbox" id="drumrollEnabledToggle">
               Enable drumroll effect
             </label>
-          </div>
-        </section>
-
-        <section class="settings-section" id="audioSection">
-          <h4>Pointer settings</h4>
-
-          <div class="setting-row">
-            <label class="slider-label" for="pointerColor">Pointer color</label>
-            <input type="color" id="pointerColor" value="#ffd45c" />
           </div>
         </section>
 

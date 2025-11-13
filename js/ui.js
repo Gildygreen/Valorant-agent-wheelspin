@@ -8,6 +8,7 @@ const agentWinVolumeRange = document.getElementById('agentWinVolumeRange');
 const agentWinVolumeLabel = document.getElementById('agentVolumeLabel');
 const tickVolumeLabel = document.getElementById('tickVolumeLabel');
 const pointerColorInput = document.getElementById('pointerColor');
+const usernameInputUi = document.getElementById('usernameInput');
 
 if (shareWinnerBtn) {
   shareWinnerBtn.disabled = true;
@@ -100,6 +101,20 @@ if (agentWinVolumeRange) {
     localStorage.setItem('agentWinVolume', String(agentWinVolume));
     if (agentWinVolumeLabel) agentWinVolumeLabel.textContent = Math.round(agentWinVolume * 100) + '%';
   });
+}
+
+// Username input wiring
+if (usernameInputUi) {
+  try { usernameInputUi.value = (typeof playerName === 'string' ? playerName : '') || ''; } catch (e) {}
+  const persist = (val) => {
+    try {
+      const v = (val || '').trim();
+      playerName = v;
+      localStorage.setItem('playerName', v);
+    } catch (e) {}
+  };
+  usernameInputUi.addEventListener('input', (e) => persist(e.target.value));
+  usernameInputUi.addEventListener('change', (e) => persist(e.target.value));
 }
 
 // Pointer arrow color picker

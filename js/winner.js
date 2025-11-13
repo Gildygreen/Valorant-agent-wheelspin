@@ -53,7 +53,10 @@ function openWinnerModalForAgent(agent, options = {}) {
   if (shareStatus) shareStatus.textContent = '';
 
   if (winnerModal && winnerModalName && winnerModalImage) {
-    winnerModalName.textContent = 'You will be playing ' + agent.name;
+    const nameLine = (typeof playerName === 'string' && playerName.trim())
+      ? (playerName.trim() + ' will be playing ' + agent.name)
+      : ('You will be playing ' + agent.name);
+    winnerModalName.textContent = nameLine;
     winnerModalImage.src = agent.img || 'assets/images/default-avatar.jpg';
     winnerModal.setAttribute('aria-hidden', 'false');
     winnerModal.removeAttribute('inert');
@@ -298,6 +301,7 @@ async function generateWinnerShareCanvas(agent, theme = lastWinnerTheme) {
   }
 
   const name = agent?.name || 'Unknown Agent';
+  const user = (typeof playerName === 'string' ? playerName.trim() : '');
   const timestamp = new Date().toLocaleString();
   ctx.fillStyle = lightText;
   ctx.font = '18px "Segoe UI", "Montserrat", sans-serif';
@@ -315,20 +319,30 @@ async function generateWinnerShareCanvas(agent, theme = lastWinnerTheme) {
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
 
+  // Username line (optional). If present, show "<user> will be playing <agent>" and push other lines down
+  let nextY = 210;
+  if (user) {
+    ctx.fillStyle = lightText;
+    ctx.font = '22px "Segoe UI", sans-serif';
+    const line = `${user} will be playing ${name}`;
+    ctx.fillText(line, 420, nextY);
+    nextY += 40;
+  }
+
   ctx.fillStyle = lightText;
   ctx.font = '22px "Segoe UI", sans-serif';
-  ctx.fillText(`Spin Time: ${timestamp}`, 420, 210);
+  ctx.fillText(`Spin Time: ${timestamp}`, 420, nextY);
 
   const url = window?.location?.href;
   if (url) {
     ctx.fillStyle = lightText;
     ctx.font = '18px "Segoe UI", sans-serif';
-    ctx.fillText(url, 420, 260);
+    ctx.fillText(url, 420, nextY + 50);
   }
 
   ctx.fillStyle = mutedText;
   ctx.font = '18px "Segoe UI", sans-serif';
-  ctx.fillText('_Generated via Valorant Agent Wheelspin_', 420, 305);
+  ctx.fillText('_Generated via Valorant Agent Wheelspin_', 420, nextY + 95);
 
   return canvas;
 }

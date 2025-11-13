@@ -18,6 +18,7 @@ const settingsModal = document.getElementById('settingsModal');
 const closeSettings = document.getElementById('closeSettings');
 const perAgentSettingsDiv = document.getElementById('perAgentSettings');
 const perAgentSection = document.getElementById('perAgentSection');
+const usernameInput = document.getElementById('usernameInput');
 const debugPanel = document.getElementById('debugPanel');
 const debugAgentSelect = document.getElementById('debugAgentSelect');
 const debugShowWinnerBtn = document.getElementById('debugShowWinnerBtn');
@@ -57,6 +58,9 @@ function getStoredString(key, fallback) {
 // Store user preferences
 let randomizeWinSounds = getStoredBoolean('randomizeWinSounds', true);
 let agentWinVolume = getStoredNumber('agentWinVolume', 0.5);
+
+// Optional player username (used in winner modal)
+let playerName = (getStoredString('playerName', '') || '').trim();
 
 // Tick sound preferences
 let tickEnabled = getStoredBoolean('tickEnabled', true);
