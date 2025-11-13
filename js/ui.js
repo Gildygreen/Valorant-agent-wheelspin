@@ -164,6 +164,42 @@ if (winnerModal) {
   });
 }
 
+// Keyboard shortcuts: Space to spin, Escape to close modals
+document.addEventListener('keydown', (e) => {
+  if (e.defaultPrevented) return;
+  const key = e.key || e.code;
+  const tag = (e.target && e.target.tagName ? e.target.tagName : '').toLowerCase();
+  const isTyping = (e.target && (e.target.isContentEditable || tag === 'input' || tag === 'textarea' || tag === 'select')); 
+
+  // Close modals with Escape
+  if (key === 'Escape' || key === 'Esc') {
+    let handled = false;
+    if (winnerModalOpen) {
+      closeWinnerModal({restoreFocus: true});
+      handled = true;
+    }
+    const settingsOpen = settingsModal && settingsModal.getAttribute('aria-hidden') === 'false';
+    if (settingsOpen) {
+      settingsModal.setAttribute('aria-hidden', 'true');
+      handled = true;
+    }
+    if (handled) e.preventDefault();
+    return;
+  }
+
+  // Start wheel with Space (when not typing and no modal open)
+  if ((key === ' ' || key === 'Space' || key === 'Spacebar') && !isTyping) {
+    const settingsOpen = settingsModal && settingsModal.getAttribute('aria-hidden') === 'false';
+    if (!spinning && agents.length > 0 && !winnerModalOpen && !settingsOpen) {
+      e.preventDefault();
+      try {
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      } catch (err) {}
+      spinWheel();
+    }
+  }
+});
+
 // Update canvas size on load
 window.addEventListener('load', () => {
   resizeCanvas();
@@ -197,10 +233,23 @@ function populatePerAgentSettings() {
     header.appendChild(title);
     block.appendChild(header);
 
+    // Collapsible section for this agent's sounds
+    const details = document.createElement('details');
+    details.className = 'agent-sounds-collapsible';
+    details.open = false; // start collapsed
+
+    const summary = document.createElement('summary');
+    summary.className = 'agent-sounds-summary';
+    const count = Array.isArray(agent.winSounds) ? agent.winSounds.length : 0;
+    summary.textContent = count ? `Voice lines (${count})` : 'Voice lines';
+    details.appendChild(summary);
+
     const soundList = document.createElement('div');
     soundList.className = 'agent-sound-list';
     renderAgentSoundRows(agent, soundList);
-    block.appendChild(soundList);
+    details.appendChild(soundList);
+
+    block.appendChild(details);
 
     perAgentSettingsDiv.appendChild(block);
   });

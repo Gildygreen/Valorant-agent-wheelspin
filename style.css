@@ -325,6 +325,42 @@ canvas {
   gap: 6px;
 }
 
+/* Collapsible agent sound sections */
+.agent-sounds-collapsible {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.agent-sounds-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.9);
+}
+
+.agent-sounds-collapsible[open] > .agent-sounds-summary {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Optional chevron indicator */
+.agent-sounds-summary::after {
+  content: '▸';
+  transition: transform 0.15s ease;
+  opacity: 0.8;
+}
+.agent-sounds-collapsible[open] > .agent-sounds-summary::after {
+  transform: rotate(90deg);
+}
+
 .agent-sound-row {
   display: flex;
   align-items: center;

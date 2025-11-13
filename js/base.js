@@ -121,17 +121,23 @@ const mobileBreakpointPx = 768;
 const centerIconMinDesktopPx = 260;
 const centerIconMinMobilePx = 110;
 
-// Register service worker to cache heavy resources
-(function registerServiceWorker() {
+// Disable file caching: unregister any existing service workers and clear caches
+(function disableServiceWorkerCaching() {
   if (!('serviceWorker' in navigator)) return;
-  if (window.location.protocol === 'file:') {
-    console.info('Service workers are unavailable on file:// origins; asset caching disabled.');
-    return;
-  }
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch((err) => {
-      console.warn('Service worker registration failed', err);
-    });
+  window.addEventListener('load', async () => {
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const reg of regs) {
+        try { await reg.unregister(); } catch (e) {}
+      }
+    } catch (e) {}
+    // Clear any caches that may have been populated by prior SW versions
+    try {
+      if (window.caches && caches.keys) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+    } catch (e) {}
   });
 })();
 

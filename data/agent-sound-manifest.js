@@ -93,8 +93,7 @@ window.AGENT_SOUND_MANIFEST = {
   "sage": [
     { "label": "Default", "path": "assets/sounds/sage.mp3" },
     { "label": "Option 2", "path": "assets/sounds/sage2.mp3" },
-    { "label": "Option 3", "path": "assets/sounds/sage3.mp3" },
-    { "label": "Option 4", "path": "assets/sounds/sage4.mp3" }
+    { "label": "Option 3", "path": "assets/sounds/sage3.mp3" }
   ],
   "skye": [
     { "label": "Default", "path": "assets/sounds/skye.mp3" },
