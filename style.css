@@ -5,10 +5,8 @@ body {
   background-color: #2f2f2f;
   color: #fff;
   margin: 0;
-  padding: 0;
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
 }
 
 #appMain {
@@ -19,16 +17,7 @@ body {
   align-items: center;
   gap: 20px;
   padding: 20px;
-}
-
-#appMain {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-  padding: 20px;
+  min-height: 100vh;
 }
 
 .loading-gated {
