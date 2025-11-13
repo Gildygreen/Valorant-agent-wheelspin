@@ -8,8 +8,12 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <main id="appMain">
   <!-- Canvas for the wheel spinner -->
-  <div id="wheelContainer">
+  <div id="wheelContainer" class="loading">
+    <div id="wheelLoading" class="wheel-loading" role="status" aria-live="polite">
+      <div class="loading-spinner" aria-hidden="true"></div>
+    </div>
     <canvas id="wheelCanvas" width="800" height="800"></canvas>
     <div id="wheelMarker" aria-hidden="true"></div>
   </div>
@@ -37,60 +41,71 @@
   <!-- Agent list -->
   <div id="agentList"></div>
 
-  <!-- Global sound section -->
+  <!-- Sound settings -->
   <!-- Settings cog and modal (sound/customization moved into modal) -->
-  <button id="settingsBtn" class="settings-btn" title="Settings">⚙️</button>
+  <button id="settingsBtn" class="settings-btn loading-gated" title="Settings">⚙️</button>
 
   <div id="settingsModal" class="modal" aria-hidden="true">
-    <div class="modal-content">
+    <div class="modal-content settings-modal">
       <span id="closeSettings" class="close" role="button" aria-label="Close">&times;</span>
-      <h3>Sound & Customization</h3>
+      <h3>Spin & Audio Settings</h3>
 
-      <div id="globalSoundSection">
-        <label for="globalWinSoundSelect">Choose a global win sound:</label>
-        <select id="globalWinSoundSelect">
-          <option value="assets/sounds/jett.mp3">Jett Sound</option>
-          <option value="assets/sounds/phoenix.mp3">Phoenix Sound</option>
-          <option value="assets/sounds/sage.mp3">Sage Sound</option>
-        </select>
-        <button id="previewGlobalWinSound">🔊 Preview</button>
-      </div>
+      <div class="settings-layout">
+        <section class="settings-section">
+          <h4>Agent Win Audio</h4>
+          <p class="settings-subtitle">Control how voice lines behave when an agent wins.</p>
+          <label class="toggle-label">
+            <input type="checkbox" id="randomizeWinSoundsToggle">
+            Randomize available voice lines
+          </label>
+          <div class="setting-row slider-row">
+            <div class="slider-label">
+              <span>Agent win volume</span>
+              <strong id="agentVolumeLabel">50%</strong>
+            </div>
+            <input id="agentWinVolumeRange" type="range" min="0" max="1" step="0.01" value="0.5" />
+          </div>
+        </section>
 
-      <div>
-        <label><input type="checkbox" id="randomizeWinSoundsToggle"> Randomize Per-Agent Win Sounds</label>
-      </div>
+        <section class="settings-section">
+          <h4>Tick Sound</h4>
+          <p class="settings-subtitle">Subtle clicks that play while the wheel spins.</p>
+          <label class="toggle-label">
+            <input type="checkbox" id="tickEnabledToggle">
+            Enable tick sound
+          </label>
+          <div class="setting-row slider-row">
+            <div class="slider-label">
+              <span>Tick volume</span>
+              <strong id="tickVolumeLabel">50%</strong>
+            </div>
+            <input id="tickVolumeRange" type="range" min="0" max="1" step="0.01" value="0.5" />
+          </div>
+        </section>
 
-      <hr />
-      <div id="tickSoundSettings">
-        <h4>Tick sound</h4>
-        <label><input type="checkbox" id="tickEnabledToggle"> Enable tick sound</label>
-        <div style="margin-top:8px;">
-          <label for="tickVolumeRange">Tick volume</label>
-          <input id="tickVolumeRange" type="range" min="0" max="1" step="0.01" value="0.9" />
-        </div>
-        <div style="margin-top:8px;">
-          <label for="tickOffsetRange">Tick offset (ms)</label>
-          <input id="tickOffsetRange" type="range" min="-200" max="200" step="10" value="0" />
-          <span id="tickOffsetLabel">0 ms</span>
-        </div>
-      </div>
-      <div id="drumrollSettings" style="margin-top:12px;">
-        <h4>Drumroll</h4>
-        <label><input type="checkbox" id="drumrollEnabledToggle"> Enable drumroll</label>
-        <div style="margin-top:8px;">
-          <label for="drumrollVolumeRange">Drumroll volume</label>
-          <input id="drumrollVolumeRange" type="range" min="0" max="1" step="0.01" value="0.9" />
-        </div>
-        <div style="margin-top:8px;">
-          <label for="drumrollLeadRange">Drumroll lead time (ms)</label>
-          <input id="drumrollLeadRange" type="range" min="300" max="3000" step="100" value="1200" />
-          <span id="drumrollLeadLabel">1200 ms</span>
-        </div>
-      </div>
+        <section class="settings-section">
+          <h4>Drumroll</h4>
+          <p class="settings-subtitle">Add a dramatic drum build-up before the winner reveal.</p>
+          <label class="toggle-label">
+            <input type="checkbox" id="drumrollEnabledToggle">
+            Enable drumroll effect
+          </label>
+          <div class="setting-row slider-row">
+            <div class="slider-label">
+              <span>Drumroll volume</span>
+              <strong id="drumrollVolumeLabel">50%</strong>
+            </div>
+            <input id="drumrollVolumeRange" type="range" min="0" max="1" step="0.01" value="0.5" />
+          </div>
+        </section>
 
-      <hr />
-      <div id="perAgentSettings">
-        <!-- Per-agent customization inputs filled dynamically -->
+        <section class="settings-section wide" id="perAgentSection">
+          <h4>Per-Agent Voice Lines</h4>
+          <p class="settings-subtitle">Enable, disable, or preview individual voice lines.</p>
+          <div id="perAgentSettings">
+            <!-- Per-agent customization inputs filled dynamically -->
+          </div>
+        </section>
       </div>
     </div>
   </div>
@@ -108,7 +123,9 @@
     </div>
   </div>
 
+  </main>
   <script src="data/agents.js"></script>
+  <script src="data/agent-sound-manifest.js"></script>
   <script src="js/base.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/winner.js"></script>

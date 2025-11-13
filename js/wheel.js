@@ -161,12 +161,15 @@ function loadCenterIcon() {
     centerIcon.src = 'assets/images/icon.png';
     centerIcon.onload = () => {
       drawWheel();
+      try { markCenterIconReady(); } catch (e) {}
     };
     centerIcon.onerror = () => {
       console.warn('Failed to load center icon from: assets/images/icon.png');
+      try { markCenterIconReady(); } catch (e) {}
     };
   } catch (e) {
     console.warn('Error loading center icon:', e);
+    try { markCenterIconReady(); } catch (err) {}
   }
 }
 

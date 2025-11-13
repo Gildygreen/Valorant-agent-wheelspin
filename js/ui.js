@@ -1,14 +1,12 @@
 // UI wiring and initialization
-const globalWinSoundSelect = document.getElementById('globalWinSoundSelect');
-const previewGlobalWinSound = document.getElementById('previewGlobalWinSound');
 const tickEnabledToggle = document.getElementById('tickEnabledToggle');
 const tickVolumeRange = document.getElementById('tickVolumeRange');
-const tickOffsetRange = document.getElementById('tickOffsetRange');
-const tickOffsetLabel = document.getElementById('tickOffsetLabel');
 const drumrollEnabledToggle = document.getElementById('drumrollEnabledToggle');
 const drumrollVolumeRange = document.getElementById('drumrollVolumeRange');
-const drumrollLeadRange = document.getElementById('drumrollLeadRange');
-const drumrollLeadLabel = document.getElementById('drumrollLeadLabel');
+const drumrollVolumeLabel = document.getElementById('drumrollVolumeLabel');
+const agentWinVolumeRange = document.getElementById('agentWinVolumeRange');
+const agentWinVolumeLabel = document.getElementById('agentVolumeLabel');
+const tickVolumeLabel = document.getElementById('tickVolumeLabel');
 
 if (shareWinnerBtn) {
   shareWinnerBtn.disabled = true;
@@ -31,25 +29,18 @@ if (shareWinnerBtn) {
   });
 }
 
-if (globalWinSoundSelect) {
-  globalWinSoundSelect.value = globalWinSoundPath;
-  globalWinSoundSelect.addEventListener('change', (e) => {
-    globalWinSoundPath = e.target.value;
-    localStorage.setItem('globalWinSoundPath', globalWinSoundPath);
-  });
-}
-
-if (previewGlobalWinSound) {
-  previewGlobalWinSound.addEventListener('click', () => {
-    if (globalWinSoundPath) new Audio(globalWinSoundPath).play().catch(() => {});
-  });
-}
-
 if (randomizeWinSoundsToggle) {
   randomizeWinSoundsToggle.checked = randomizeWinSounds;
   randomizeWinSoundsToggle.addEventListener('change', (e) => {
     randomizeWinSounds = e.target.checked;
     localStorage.setItem('randomizeWinSounds', JSON.stringify(randomizeWinSounds));
+    if (typeof applyRandomizeSoundRules === 'function') {
+      applyRandomizeSoundRules();
+    }
+    if (typeof updatePerAgentSectionVisibility === 'function') {
+      updatePerAgentSectionVisibility();
+    }
+    populatePerAgentSettings();
   });
 }
 
@@ -63,22 +54,14 @@ if (tickEnabledToggle) {
 }
 if (tickVolumeRange) {
   tickVolumeRange.value = tickVolume;
+  if (tickVolumeLabel) tickVolumeLabel.textContent = Math.round(tickVolume * 100) + '%';
   tickVolumeRange.addEventListener('input', (e) => {
     const v = parseFloat(e.target.value);
-    tickVolume = isNaN(v) ? 0.9 : v;
+    tickVolume = isNaN(v) ? 0.5 : v;
     localStorage.setItem('tickVolume', String(tickVolume));
     // apply to fallback audio if present
     try { if (fallbackTickAudio) fallbackTickAudio.volume = tickVolume; } catch (e) {}
-  });
-}
-if (tickOffsetRange) {
-  tickOffsetRange.value = tickOffsetMs;
-  if (tickOffsetLabel) tickOffsetLabel.textContent = tickOffsetMs + ' ms';
-  tickOffsetRange.addEventListener('input', (e) => {
-    const v = parseInt(e.target.value, 10);
-    tickOffsetMs = isNaN(v) ? 0 : v;
-    localStorage.setItem('tickOffsetMs', String(tickOffsetMs));
-    if (tickOffsetLabel) tickOffsetLabel.textContent = tickOffsetMs + ' ms';
+    if (tickVolumeLabel) tickVolumeLabel.textContent = Math.round(tickVolume * 100) + '%';
   });
 }
 // Drumroll settings wiring
@@ -91,9 +74,10 @@ if (drumrollEnabledToggle) {
 }
 if (drumrollVolumeRange) {
   drumrollVolumeRange.value = drumVolume;
+  if (drumrollVolumeLabel) drumrollVolumeLabel.textContent = Math.round(drumVolume * 100) + '%';
   drumrollVolumeRange.addEventListener('input', (e) => {
     const v = parseFloat(e.target.value);
-    drumVolume = isNaN(v) ? 0.9 : v;
+    drumVolume = isNaN(v) ? 0.5 : v;
     localStorage.setItem('drumVolume', String(drumVolume));
     try { if (fallbackDrumAudio) fallbackDrumAudio.volume = drumVolume; } catch (e) {}
     // apply to active drum sources if playing
@@ -102,16 +86,18 @@ if (drumrollVolumeRange) {
         for (const s of drumSources) { s.gain.gain.value = drumVolume; }
       }
     } catch (e) {}
+    if (drumrollVolumeLabel) drumrollVolumeLabel.textContent = Math.round(drumVolume * 100) + '%';
   });
 }
-if (drumrollLeadRange) {
-  drumrollLeadRange.value = drumLeadMs;
-  if (drumrollLeadLabel) drumrollLeadLabel.textContent = drumLeadMs + ' ms';
-  drumrollLeadRange.addEventListener('input', (e) => {
-    const v = parseInt(e.target.value, 10);
-    drumLeadMs = isNaN(v) ? 2200 : v;
-    localStorage.setItem('drumLeadMs', String(drumLeadMs));
-    if (drumrollLeadLabel) drumrollLeadLabel.textContent = drumLeadMs + ' ms';
+
+if (agentWinVolumeRange) {
+  agentWinVolumeRange.value = agentWinVolume;
+  if (agentWinVolumeLabel) agentWinVolumeLabel.textContent = Math.round(agentWinVolume * 100) + '%';
+  agentWinVolumeRange.addEventListener('input', (e) => {
+    const v = parseFloat(e.target.value);
+    agentWinVolume = isNaN(v) ? 0.5 : v;
+    localStorage.setItem('agentWinVolume', String(agentWinVolume));
+    if (agentWinVolumeLabel) agentWinVolumeLabel.textContent = Math.round(agentWinVolume * 100) + '%';
   });
 }
 
@@ -188,52 +174,100 @@ window.addEventListener('load', () => {
 function populatePerAgentSettings() {
   if (!perAgentSettingsDiv) return;
   perAgentSettingsDiv.innerHTML = '';
-  agents.forEach((agent, idx) => {
-    const row = document.createElement('div');
-    row.className = 'agent-setting';
-    row.style.display = 'flex';
-    row.style.alignItems = 'center';
-    row.style.marginBottom = '8px';
+  agents.forEach((agent) => {
+    const block = document.createElement('div');
+    block.className = 'agent-setting';
+
+    const header = document.createElement('div');
+    header.className = 'agent-setting-header';
 
     const img = document.createElement('img');
     img.src = agent.img || '';
     img.alt = agent.name;
-    img.style.width = '36px';
-    img.style.height = '36px';
+    img.width = 36;
+    img.height = 36;
     img.style.objectFit = 'cover';
     img.style.borderRadius = '4px';
-    img.style.marginRight = '8px';
 
-    const label = document.createElement('div');
-    label.textContent = agent.name;
-    label.style.flex = '0 0 120px';
-    label.style.color = '#fff';
+    const title = document.createElement('div');
+    title.className = 'agent-setting-title';
+    title.textContent = agent.name;
 
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.placeholder = 'Win sound URL or path';
-    input.style.flex = '1';
-    input.value = (agent.winSounds && agent.winSounds[0]) ? agent.winSounds[0].path : '';
-    input.addEventListener('change', (e) => {
-      const val = e.target.value.trim();
-      agent.winSounds = agent.winSounds || [];
-      if (agent.winSounds[0]) agent.winSounds[0].path = val;
-      else agent.winSounds.push({label: 'Custom', path: val, isDefault: true});
-    });
+    header.appendChild(img);
+    header.appendChild(title);
+    block.appendChild(header);
 
-    const preview = document.createElement('button');
-    preview.textContent = '🔊';
-    preview.style.marginLeft = '8px';
-    preview.addEventListener('click', () => {
-      const path = input.value || (agent.winSounds && agent.winSounds[0]?.path);
-      if (path) new Audio(path).play().catch(() => {});
-    });
+    const soundList = document.createElement('div');
+    soundList.className = 'agent-sound-list';
+    renderAgentSoundRows(agent, soundList);
+    block.appendChild(soundList);
 
-    row.appendChild(img);
-    row.appendChild(label);
-    row.appendChild(input);
-    row.appendChild(preview);
-    perAgentSettingsDiv.appendChild(row);
+    perAgentSettingsDiv.appendChild(block);
   });
+}
+
+function renderAgentSoundRows(agent, container) {
+  const sounds = Array.isArray(agent.winSounds) && agent.winSounds.length ? agent.winSounds : null;
+  if (!sounds) {
+    const empty = document.createElement('div');
+    empty.className = 'agent-sound-empty';
+    empty.textContent = 'Loading sounds...';
+    container.appendChild(empty);
+    return;
+  }
+
+  sounds.forEach((sound) => {
+    const row = document.createElement('div');
+    row.className = 'agent-sound-row';
+
+    const label = document.createElement('label');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = sound.enabled !== false;
+    const defaultLocked = !randomizeWinSounds && sound.isDefault;
+    checkbox.disabled = defaultLocked;
+    checkbox.addEventListener('change', (e) => {
+      const enabled = !!e.target.checked;
+      if (typeof setAgentSoundEnabled === 'function') {
+        const finalState = setAgentSoundEnabled(agent.name, sound.path, enabled);
+        sound.enabled = finalState;
+        e.target.checked = finalState;
+        if (finalState === false && !randomizeWinSounds && sound.isDefault) {
+          checkbox.disabled = true;
+        }
+      }
+    });
+
+    const nameSpan = document.createElement('span');
+    const friendlyName = sound.label || sound.path?.split('/').pop();
+    nameSpan.textContent = friendlyName || 'Sound';
+
+    label.appendChild(checkbox);
+    label.appendChild(nameSpan);
+
+    const actions = document.createElement('div');
+    actions.className = 'agent-sound-actions';
+    const previewBtn = document.createElement('button');
+    previewBtn.type = 'button';
+    previewBtn.className = 'agent-sound-preview';
+    previewBtn.textContent = '▶';
+    previewBtn.title = 'Preview sound';
+    previewBtn.setAttribute('aria-label', `Preview ${friendlyName} for ${agent.name}`);
+    previewBtn.addEventListener('click', () => previewAgentSound(sound.path));
+    actions.appendChild(previewBtn);
+
+    row.appendChild(label);
+    row.appendChild(actions);
+    container.appendChild(row);
+  });
+}
+
+function previewAgentSound(path) {
+  if (!path) return;
+  try {
+    const audio = new Audio(path);
+    audio.volume = agentWinVolume;
+    audio.play().catch(() => {});
+  } catch (e) {}
 }
 
