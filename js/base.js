@@ -70,6 +70,10 @@ let tickVolume = getStoredNumber('tickVolume', 0.5);
 let pointerColor = normalizeHex(getStoredString('pointerColor', '#ffd45c')) || '#ffd45c';
 window.pointerColor = pointerColor;
 
+// Unfiltered list and current (filtered) list reference (populated in data.js)
+// "agents" is declared in data/agents.js; we keep a master copy too
+let allAgents = typeof agents !== 'undefined' ? agents : [];
+
 let startAngle = 0;
 let spinning = false;
 // animation state
@@ -194,6 +198,18 @@ window.revealLoadingGatedUi = function revealLoadingGatedUi() {
     el.classList.add('ready');
   });
 };
+
+// Track whether any modal is open and reflect on <body>
+function refreshModalOpenClass() {
+  try {
+    const settingsOpen = settingsModal && settingsModal.getAttribute('aria-hidden') === 'false';
+    const open = !!winnerModalOpen || !!settingsOpen;
+    if (document && document.body && document.body.classList) {
+      document.body.classList.toggle('modal-open', open);
+    }
+  } catch (e) {}
+}
+window.refreshModalOpenClass = refreshModalOpenClass;
 
 window.updatePerAgentSectionVisibility = function updatePerAgentSectionVisibility() {
   if (!perAgentSection) return;

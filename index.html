@@ -9,6 +9,22 @@
 </head>
 <body>
   <main id="appMain">
+  <!-- Role filter bar -->
+  <nav id="roleFilterBar" aria-label="Agent role filters">
+    <button id="roleBtnController" class="role-btn" type="button" title="Controllers" aria-pressed="false" data-role="Controller">
+      <img alt="Controller" />
+    </button>
+    <button id="roleBtnDuelist" class="role-btn" type="button" title="Duelists" aria-pressed="false" data-role="Duelist">
+      <img alt="Duelist" />
+    </button>
+    <button id="roleBtnInitiator" class="role-btn" type="button" title="Initiators" aria-pressed="false" data-role="Initiator">
+      <img alt="Initiator" />
+    </button>
+    <button id="roleBtnSentinel" class="role-btn" type="button" title="Sentinels" aria-pressed="false" data-role="Sentinel">
+      <img alt="Sentinel" />
+    </button>
+  </nav>
+
   <!-- Canvas for the wheel spinner -->
   <div id="wheelContainer" class="loading">
     <div id="wheelLoading" class="wheel-loading" role="status" aria-live="polite">

@@ -9,6 +9,62 @@ body {
   display: flex;
 }
 
+/* Hide role filter bar when any modal is open */
+body.modal-open #roleFilterBar { display: none; }
+
+/* Left role filter bar */
+#roleFilterBar {
+  position: fixed;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 10;
+}
+
+.role-btn {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.2);
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+  box-shadow: 0 10px 22px rgba(0,0,0,0.45);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+  padding: 0;
+}
+
+.role-btn:hover { transform: translateY(-1px) scale(1.02); }
+.role-btn[aria-pressed="true"], .role-btn.selected {
+  border-color: #7b8bff;
+  box-shadow: 0 14px 32px rgba(123,139,255,0.45);
+  background: radial-gradient(circle at 30% 30%, rgba(123,139,255,0.18), rgba(255,255,255,0.04));
+}
+
+.role-btn img {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+}
+
+@media (max-width: 820px) {
+  #roleFilterBar {
+    left: 50%;
+    top: auto;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    flex-direction: row;
+    gap: 10px;
+  }
+  .role-btn { width: 56px; height: 56px; }
+}
+
 #appMain {
   flex: 1;
   display: flex;
