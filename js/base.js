@@ -224,6 +224,11 @@ function refreshModalOpenClass() {
     if (document && document.body && document.body.classList) {
       document.body.classList.toggle('modal-open', open);
     }
+    // Apply the same wheel blur when any modal is open
+    try {
+      const wc = document.getElementById('wheelContainer');
+      if (wc && wc.classList) wc.classList.toggle('blurred', open);
+    } catch (e) {}
   } catch (e) {}
 }
 window.refreshModalOpenClass = refreshModalOpenClass;

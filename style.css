@@ -777,7 +777,6 @@ canvas {
   display: none;
   align-items: center;
   justify-content: center;
-  background: rgba(0,0,0,0.6);
   z-index: 900;
 }
 
@@ -800,6 +799,7 @@ canvas {
   grid-template-columns: 1fr;
   gap: 8px;
 }
+.team-grid { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start; }
 .team-player-row {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -812,12 +812,10 @@ canvas {
   align-items: center;
   margin-top: 10px;
 }
-.team-comp {
-  display: grid;
-  grid-template-columns: auto 80px;
-  gap: 6px 10px;
-  align-items: center;
-}
+.team-comp { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+.team-comp-item { display: flex; align-items: center; gap: 8px; justify-content: flex-start; }
+.team-comp-icon { width: 28px; height: 28px; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5)); }
+.team-comp input[type="number"] { width: 64px; text-align: center; }
 .team-results {
   margin-top: 12px;
   display: grid;

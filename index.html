@@ -153,6 +153,12 @@
             <input type="text" id="teamNameInput" placeholder="My Stack" />
           </div>
 
+          <div class="setting-row">
+            <label class="slider-label" for="teamSizeInput">Team size</label>
+            <input type="number" id="teamSizeInput" min="1" max="5" step="1" value="5" />
+          </div>
+
+          <div class="team-grid">
           <div id="teamPlayers" class="team-form">
             <!-- Five player rows -->
             <div class="team-player-row">
@@ -207,17 +213,25 @@
             </div>
           </div>
 
-          <h4 style="margin-top:10px">Team Role Composition</h4>
           <div id="teamComposition" class="team-comp">
-            <label class="slider-label" for="compController">Controllers</label>
-            <input type="number" id="compController" min="0" max="5" step="1" value="0" />
-            <label class="slider-label" for="compDuelist">Duelists</label>
-            <input type="number" id="compDuelist" min="0" max="5" step="1" value="0" />
-            <label class="slider-label" for="compInitiator">Initiators</label>
-            <input type="number" id="compInitiator" min="0" max="5" step="1" value="0" />
-            <label class="slider-label" for="compSentinel">Sentinels</label>
-            <input type="number" id="compSentinel" min="0" max="5" step="1" value="0" />
-            <div class="settings-subtitle" style="grid-column: 1 / -1;">Unspecified slots will be filled with Any.</div>
+            <div class="team-comp-item">
+              <img class="team-comp-icon" alt="Controller" title="Controllers" data-role="Controller" />
+              <input aria-label="Controllers" type="number" id="compController" min="0" max="5" step="1" value="0" />
+            </div>
+            <div class="team-comp-item">
+              <img class="team-comp-icon" alt="Duelist" title="Duelists" data-role="Duelist" />
+              <input aria-label="Duelists" type="number" id="compDuelist" min="0" max="5" step="1" value="0" />
+            </div>
+            <div class="team-comp-item">
+              <img class="team-comp-icon" alt="Initiator" title="Initiators" data-role="Initiator" />
+              <input aria-label="Initiators" type="number" id="compInitiator" min="0" max="5" step="1" value="0" />
+            </div>
+            <div class="team-comp-item">
+              <img class="team-comp-icon" alt="Sentinel" title="Sentinels" data-role="Sentinel" />
+              <input aria-label="Sentinels" type="number" id="compSentinel" min="0" max="5" step="1" value="0" />
+            </div>
+            <div class="settings-subtitle">Unspecified slots will be filled with Any.</div>
+          </div>
           </div>
 
           <label class="toggle-label" style="margin-top:8px">

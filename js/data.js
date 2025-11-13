@@ -363,6 +363,7 @@ async function loadAgentsFromValorantApi() {
     populateDebugAgentSelect();
     try { if (typeof window.refreshRoleFilterIcons === 'function') window.refreshRoleFilterIcons(ROLE_ICONS); } catch (e) {}
     try { markWheelAssetsReady(); } catch (e) {}
+    try { if (typeof window.refreshTeamCompIcons === 'function') window.refreshTeamCompIcons(ROLE_ICONS); } catch (e) {}
   } catch (e) {
     console.warn('Failed to load agents from API', e);
     try { markWheelAssetsReady(); } catch (err) {}

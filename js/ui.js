@@ -23,6 +23,8 @@ const teamsModalEl = document.getElementById('teamsModal');
 const closeTeamsEl = document.getElementById('closeTeams');
 const teamNameInput = document.getElementById('teamNameInput');
 const teamPlayersContainer = document.getElementById('teamPlayers');
+const teamCompEl = document.getElementById('teamComposition');
+const teamSizeInput = document.getElementById('teamSizeInput');
 const teamRandomizeRoles = document.getElementById('teamRandomizeRoles');
 const savedTeamsSelect = document.getElementById('savedTeamsSelect');
 const teamNewBtn = document.getElementById('teamNewBtn');
@@ -239,10 +241,50 @@ function renderSavedTeams() {
     opt.textContent = t.name || `Team ${idx+1}`;
     savedTeamsSelect.appendChild(opt);
   });
+  // Restore last selected index
+  try {
+    const stored = localStorage.getItem('savedTeamsSelectedIndex');
+    const selIdx = stored === null || stored === '' ? NaN : parseInt(stored, 10);
+    if (!isNaN(selIdx) && teams[selIdx]) {
+      savedTeamsSelect.value = String(selIdx);
+      populateFormFromTeam(teams[selIdx]);
+    }
+  } catch (e) {}
 }
+
+// Toggle visibility of team composition vs per-player role selects
+function updateTeamRolesVisibility() {
+  const on = !!(teamRandomizeRoles && teamRandomizeRoles.checked);
+  try { if (teamCompEl) teamCompEl.style.display = on ? '' : 'none'; } catch (e) {}
+  try {
+    if (teamPlayersContainer) {
+      teamPlayersContainer.querySelectorAll('.team-player-role').forEach((sel) => {
+        sel.style.display = on ? 'none' : '';
+      });
+    }
+  } catch (e) {}
+}
+try { updateTeamRolesVisibility(); } catch (e) {}
+if (teamRandomizeRoles) {
+  teamRandomizeRoles.addEventListener('change', () => {
+    updateTeamRolesVisibility();
+  });
+}
+
+// Allow data.js to set team comp icons
+window.refreshTeamCompIcons = function refreshTeamCompIcons(icons) {
+  try {
+    document.querySelectorAll('.team-comp-icon').forEach((img) => {
+      const role = img.getAttribute('data-role');
+      const src = icons && role ? icons[role] : null;
+      if (src) img.src = src;
+    });
+  } catch (e) {}
+};
 function getFormPlayers() {
   const rows = teamPlayersContainer ? Array.from(teamPlayersContainer.querySelectorAll('.team-player-row')) : [];
-  return rows.map((row) => {
+  const size = getTeamSize();
+  return rows.slice(0, size).map((row) => {
     const name = (row.querySelector('.team-player-name')?.value || '').trim();
     const role = (row.querySelector('.team-player-role')?.value || '').trim();
     return { name, role };
@@ -265,12 +307,17 @@ function clearTeamForm() {
   if (teamResults) teamResults.innerHTML = '';
   if (savedTeamsSelect) savedTeamsSelect.value = '';
   setRoleComposition({ Controller: 0, Duelist: 0, Initiator: 0, Sentinel: 0 });
+  try { localStorage.removeItem('savedTeamsSelectedIndex'); } catch (e) {}
+  try { if (teamSizeInput) teamSizeInput.value = 5; } catch (e) {}
+  try { updatePlayerRowsForTeamSize(); } catch (e) {}
 }
 function collectTeamFromForm() {
   return {
     name: (teamNameInput?.value || '').trim() || 'Team',
     players: getFormPlayers(),
     comp: getRoleComposition(),
+    randomize: !!(teamRandomizeRoles && teamRandomizeRoles.checked),
+    size: getTeamSize(),
   };
 }
 function populateFormFromTeam(team) {
@@ -278,6 +325,12 @@ function populateFormFromTeam(team) {
   if (teamNameInput) teamNameInput.value = team.name || '';
   setFormPlayers(team.players || []);
   setRoleComposition(team.comp || { Controller: 0, Duelist: 0, Initiator: 0, Sentinel: 0 });
+  try {
+    if (teamRandomizeRoles) teamRandomizeRoles.checked = !!team.randomize;
+  } catch (e) {}
+  try { updateTeamRolesVisibility(); } catch (e) {}
+  try { if (teamSizeInput) teamSizeInput.value = clampInt(team.size, 1, 5) || 5; } catch (e) {}
+  try { updatePlayerRowsForTeamSize(); updateCompInputsMax(); enforceCompSum(); } catch (e) {}
 }
 
 if (savedTeamsSelect) {
@@ -288,6 +341,7 @@ if (savedTeamsSelect) {
     if (!isNaN(idx) && teams[idx]) {
       populateFormFromTeam(teams[idx]);
     }
+    try { localStorage.setItem('savedTeamsSelectedIndex', String(isNaN(idx) ? '' : idx)); } catch (e) {}
   });
 }
 if (teamNewBtn) {
@@ -302,6 +356,12 @@ if (teamSaveBtn) {
     if (!isNaN(idx) && teams[idx]) teams[idx] = current; else teams.push(current);
     saveTeams(teams);
     renderSavedTeams();
+    // persist or set selection to saved team
+    try {
+      const newIndex = (!isNaN(idx) && teams[idx]) ? idx : (teams.length - 1);
+      if (savedTeamsSelect) savedTeamsSelect.value = String(newIndex);
+      localStorage.setItem('savedTeamsSelectedIndex', String(newIndex));
+    } catch (e) {}
   });
 }
 if (teamDeleteBtn) {
@@ -422,32 +482,124 @@ function setRoleComposition(comp) {
   try { if (compDuelist) compDuelist.value = clampInt(comp?.Duelist, 0, 5); } catch (e) {}
   try { if (compInitiator) compInitiator.value = clampInt(comp?.Initiator, 0, 5); } catch (e) {}
   try { if (compSentinel) compSentinel.value = clampInt(comp?.Sentinel, 0, 5); } catch (e) {}
+  try { updateCompInputsMax(); enforceCompSum(); } catch (e) {}
 }
+
+function getTeamSize() {
+  return clampInt(teamSizeInput?.value || 5, 1, 5);
+}
+
+function updateCompInputsMax() {
+  const max = getTeamSize();
+  try { if (compController) compController.max = String(max); } catch (e) {}
+  try { if (compDuelist) compDuelist.max = String(max); } catch (e) {}
+  try { if (compInitiator) compInitiator.max = String(max); } catch (e) {}
+  try { if (compSentinel) compSentinel.max = String(max); } catch (e) {}
+}
+
+function updatePlayerRowsForTeamSize() {
+  try {
+    if (!teamPlayersContainer) return;
+    const size = getTeamSize();
+    const rows = Array.from(teamPlayersContainer.querySelectorAll('.team-player-row'));
+    rows.forEach((row, idx) => {
+      row.style.display = idx < size ? '' : 'none';
+    });
+    // Keep role visibility consistent with randomize toggle
+    try { updateTeamRolesVisibility(); } catch (e) {}
+  } catch (e) {}
+}
+
+function enforceCompSum(changedInput) {
+  const maxSum = getTeamSize();
+  const c = clampInt(compController?.value, 0, maxSum);
+  const d = clampInt(compDuelist?.value, 0, maxSum);
+  const i = clampInt(compInitiator?.value, 0, maxSum);
+  const s = clampInt(compSentinel?.value, 0, maxSum);
+  let total = c + d + i + s;
+  if (total <= maxSum) return; // nothing to do
+  const over = total - maxSum;
+  // reduce the changed input by the overflow (not below 0)
+  if (changedInput) {
+    const newVal = clampInt((parseInt(changedInput.value, 10) || 0) - over, 0, maxSum);
+    changedInput.value = String(newVal);
+    return;
+  }
+  // fallback: reduce Sentinel first, then Initiator, Duelist, Controller
+  const order = [compSentinel, compInitiator, compDuelist, compController];
+  let remaining = over;
+  for (const inp of order) {
+    if (!inp) continue;
+    const val = clampInt(inp.value, 0, maxSum);
+    if (val > 0) {
+      const dec = Math.min(val, remaining);
+      inp.value = String(val - dec);
+      remaining -= dec;
+      if (remaining <= 0) break;
+    }
+  }
+}
+
+if (teamSizeInput) {
+  teamSizeInput.addEventListener('input', () => { updatePlayerRowsForTeamSize(); updateCompInputsMax(); enforceCompSum(); });
+}
+if (compController) compController.addEventListener('input', (e) => enforceCompSum(e.target));
+if (compDuelist) compDuelist.addEventListener('input', (e) => enforceCompSum(e.target));
+if (compInitiator) compInitiator.addEventListener('input', (e) => enforceCompSum(e.target));
+if (compSentinel) compSentinel.addEventListener('input', (e) => enforceCompSum(e.target));
 
 // Animated team roll using the main spinning wheel
 async function animatedTeamRoll(team, randomizeRolesFlag) {
   try {
     // Prepare players list and optional role randomization
-    const players = (team?.players || []).map((p, i) => ({ idx: i, name: p.name || `Player ${i+1}`, role: p.role || '' }));
+    let players = (team?.players || []).map((p, i) => ({ idx: i, name: p.name || `Player ${i+1}`, role: p.role || '' }));
     if (!players.length) return;
     if (teamResults) teamResults.innerHTML = '';
+    // Apply team size (cap to available rows) — prefer live input for safety
+    const liveSize = (typeof getTeamSize === 'function') ? getTeamSize() : null;
+    const size = clampInt((team?.size || liveSize || players.length), 1, players.length) || players.length;
+    players = players.slice(0, size);
     // Apply team composition if provided; otherwise optional shuffle of user-selected roles
-    const comp = team?.comp || { Controller: 0, Duelist: 0, Initiator: 0, Sentinel: 0 };
-    const compSum = ['Controller','Duelist','Initiator','Sentinel']
-      .map((k) => parseInt(comp?.[k] || 0, 10) || 0)
-      .reduce((a,b)=>a+b,0);
-    if (compSum > 0) {
-      const teamSize = players.length;
-      const desired = [];
-      const pushMany = (role, count) => { for (let n=0; n<Math.min(count, teamSize - desired.length); n++) desired.push(role); };
-      pushMany('Controller', parseInt(comp.Controller||0,10)||0);
-      pushMany('Duelist', parseInt(comp.Duelist||0,10)||0);
-      pushMany('Initiator', parseInt(comp.Initiator||0,10)||0);
-      pushMany('Sentinel', parseInt(comp.Sentinel||0,10)||0);
-      while (desired.length < teamSize) desired.push('Any');
-      const roles = shuffle(desired);
+    if (randomizeRolesFlag) {
+      // Prefer live composition values when randomizing; fall back to saved
+      const comp = (typeof getRoleComposition === 'function')
+        ? getRoleComposition()
+        : (team?.comp || { Controller: 0, Duelist: 0, Initiator: 0, Sentinel: 0 });
+      const counts = ['Controller','Duelist','Initiator','Sentinel']
+        .map((k) => Math.max(0, parseInt(comp?.[k] || 0, 10) || 0));
+      let expanded = [];
+      const rolesOrder = ['Controller','Duelist','Initiator','Sentinel'];
+      for (let r = 0; r < rolesOrder.length; r++) {
+        const remaining = size - expanded.length;
+        if (remaining <= 0) break;
+        const toAdd = Math.min(counts[r], remaining);
+        for (let n = 0; n < toAdd; n++) {
+          expanded.push(rolesOrder[r]);
+        }
+      }
+      // If we still need roles, fill with Any; otherwise trim to size
+      if (expanded.length < size) {
+        while (expanded.length < size) expanded.push('Any');
+      } else if (expanded.length > size) {
+        expanded = expanded.slice(0, size);
+      }
+      const roles = shuffle(expanded);
       for (let i = 0; i < players.length; i++) players[i].role = roles[i];
-    } else if (randomizeRolesFlag) {
+      // Defensive: ensure no Any appears if composition fills team size
+      try {
+        if (expanded.length >= size) {
+          const remaining = roles.reduce((acc, r) => { acc[r] = (acc[r]||0)+1; return acc; }, {});
+          players.forEach(p => { if (p.role && p.role !== 'Any') remaining[p.role] = Math.max(0,(remaining[p.role]||0)-1); });
+          const orderFix = ['Controller','Duelist','Initiator','Sentinel'];
+          players.forEach(p => {
+            if (!p.role || p.role === 'Any') {
+              const fill = orderFix.find(k => (remaining[k]||0) > 0);
+              if (fill) { p.role = fill; remaining[fill] = remaining[fill]-1; }
+            }
+          });
+        }
+      } catch (e) {}
+    } else {
       let roles = players.map(p => p.role).filter(Boolean);
       roles = shuffle(roles.slice());
       let r = 0;
@@ -1031,4 +1183,3 @@ function previewAgentSound(path) {
     audio.play().catch(() => {});
   } catch (e) {}
 }
-
