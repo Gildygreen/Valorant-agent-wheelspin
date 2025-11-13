@@ -51,16 +51,153 @@ canvas {
 #wheelMarker { display: none; }
 
 /* Winner modal (re-use .modal/.modal-content styles defined earlier) */
+#winnerModal {
+  background: radial-gradient(circle at center, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.85));
+  backdrop-filter: blur(6px);
+}
+
 #winnerModal .modal-content {
-  max-width: 420px;
+  --winner-bg-lite: #2b2c3d;
+  --winner-bg-dark: #14141b;
+  --winner-primary: #7b8bff;
+  --winner-primary-dark: #3a47a1;
+  --winner-accent: #dfe5ff;
+  --winner-shadow: rgba(64, 88, 255, 0.35);
+  --winner-text: #f4f6ff;
+  --winner-muted: rgba(255, 255, 255, 0.65);
+  position: relative;
+  max-width: 440px;
+  padding: 32px 32px 32px;
+  border-radius: 28px;
+  background: radial-gradient(circle at 20% 20%, var(--winner-bg-lite), var(--winner-bg-dark) 70%);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 35px var(--winner-shadow);
+}
+
+#winnerModal .modal-content::before,
+#winnerModal .modal-content::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+#winnerModal .modal-content::before {
+  background: radial-gradient(circle at 30% -20%, rgba(255, 255, 255, 0.18), transparent 55%);
+  opacity: 0.9;
+}
+
+#winnerModal .modal-content::after {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  mix-blend-mode: screen;
+  opacity: 0.4;
 }
 
 #winnerModal img {
-  width: 140px;
-  height: 140px;
-  border-radius: 8px;
+  width: min(45vw, 180px);
+  height: min(45vw, 180px);
+  border-radius: 24px;
   display: block;
-  margin: 12px auto;
+  margin: 18px auto 10px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+#winnerModalName {
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 4px 0 2px;
+  color: var(--winner-text);
+}
+
+#winnerModal .winner-accent {
+  font-size: 0.9rem;
+  color: var(--winner-muted);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+#winnerModal .modal-content .close {
+  position: absolute;
+  right: 16px;
+  top: 12px;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--winner-text);
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.35);
+}
+
+#winnerModal .modal-content .close:hover {
+  color: #ffffff;
+}
+
+.winner-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+}
+
+.modal-button {
+  background: linear-gradient(120deg, var(--winner-primary), var(--winner-primary-dark));
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+  color: var(--winner-text);
+  border: none;
+}
+
+.modal-button:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.015);
+  box-shadow: 0 18px 35px var(--winner-shadow);
+}
+
+.share-clipboard-btn {
+  position: absolute;
+  bottom: 24px;
+  right: 26px;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.share-clipboard-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.share-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+#closeWinnerBtn {
+  padding: 14px 32px;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: linear-gradient(120deg, var(--winner-primary), var(--winner-primary-dark));
+  box-shadow: 0 12px 25px var(--winner-shadow);
+}
+
+.share-clipboard-btn:focus-visible,
+#closeWinnerBtn:focus-visible {
+  outline: none;
+}
+
+.share-status {
+  min-height: 1.2em;
+  margin-top: 14px;
+  font-size: 0.9rem;
+  text-align: center;
+  color: var(--winner-muted);
 }
 
 /* Settings cog */

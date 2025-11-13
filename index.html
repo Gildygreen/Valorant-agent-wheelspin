@@ -17,11 +17,20 @@
   <div id="winnerModal" class="modal" aria-hidden="true">
     <div class="modal-content">
       <span id="closeWinner" class="close" role="button" aria-label="Close">&times;</span>
-      <h2 id="winnerModalName">Winner</h2>
-      <img id="winnerModalImage" alt="Winner Image" />
-      <div style="margin-top:12px; text-align:center;">
-        <button id="closeWinnerBtn">Close</button>
+      <div class="winner-header">
+        <div class="winner-title">
+          <h2 id="winnerModalName">Winner</h2>
+          <p class="winner-accent">Agent Selected</p>
+        </div>
       </div>
+      <img id="winnerModalImage" alt="Winner Image" />
+      <div class="winner-actions">
+        <button id="closeWinnerBtn" type="button" class="modal-button">Close</button>
+        <button id="shareWinnerBtn" class="share-clipboard-btn modal-button" type="button" title="Copy proof image" aria-label="Copy proof image" disabled>
+          <span class="share-icon" aria-hidden="true">⧉</span>
+        </button>
+      </div>
+      <p id="shareStatus" class="share-status" role="status" aria-live="polite"></p>
     </div>
   </div>
 

@@ -9,6 +9,8 @@ const winnerModalImage = document.getElementById('winnerModalImage');
 const winnerCustomText = document.getElementById('winnerCustomText');
 const closeWinner = document.getElementById('closeWinner');
 const closeWinnerBtn = document.getElementById('closeWinnerBtn');
+const shareWinnerBtn = document.getElementById('shareWinnerBtn');
+const shareStatus = document.getElementById('shareStatus');
 const agentListDiv = document.getElementById('agentList');
 const randomizeWinSoundsToggle = document.getElementById('randomizeWinSoundsToggle');
 const settingsBtn = document.getElementById('settingsBtn');
@@ -175,6 +177,10 @@ let overshootPeakAngle = 0;
 let overshootTargetAngle = 0;
 let pendingWinnerAgent = null;
 let pendingWinnerSound = null;
+let lastWinnerAgent = null;
+let lastSpinProofId = null;
+let shareStatusTimer = null;
+let lastWinnerTheme = null;
 // Tick sound audio resources
 let audioCtx = null;
 let tickBuffer = null;
@@ -233,6 +239,100 @@ function hslToHex(h, s, l) {
     return Math.round(255 * color).toString(16).padStart(2, '0');
   };
   return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+function normalizeHex(hex) {
+  if (!hex) return null;
+  let h = hex.trim();
+  if (h[0] !== '#') h = '#' + h;
+  if (h.length === 4) h = '#' + h[1] + h[1] + h[2] + h[2] + h[3] + h[3];
+  if (/^#([0-9a-f]{6})$/i.test(h)) return h.toLowerCase();
+  return null;
+}
+
+function hexToRgb(hex) {
+  const h = normalizeHex(hex);
+  if (!h) return null;
+  const int = parseInt(h.slice(1), 16);
+  return {
+    r: (int >> 16) & 255,
+    g: (int >> 8) & 255,
+    b: int & 255,
+  };
+}
+
+function hexToRgba(hex, alpha = 1) {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return `rgba(98,108,255,${alpha})`;
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+}
+
+function shadeColor(hex, percent) {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex || '#777777';
+  const t = percent < 0 ? 0 : 255;
+  const p = Math.max(0, Math.min(1, Math.abs(percent)));
+  const r = Math.round(rgb.r + (t - rgb.r) * p);
+  const g = Math.round(rgb.g + (t - rgb.g) * p);
+  const b = Math.round(rgb.b + (t - rgb.b) * p);
+  return rgbToHex(r, g, b);
+}
+
+function relativeLuminance(hex) {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return 0.5;
+  const srgb = [rgb.r, rgb.g, rgb.b].map((c) => {
+    const v = c / 255;
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
+}
+
+function computeWinnerTheme(baseHex) {
+  const base = normalizeHex(baseHex) || '#7b8bff';
+  const lum = relativeLuminance(base);
+  const isLight = lum > 0.55;
+  if (isLight) {
+    const darker = shadeColor(base, -0.65);
+    return {
+      base,
+      light: shadeColor(base, -0.2),
+      dark: shadeColor(base, -0.75),
+      accent: darker,
+      contrast: shadeColor(base, -0.45),
+      shadow: hexToRgba(darker, 0.45),
+      text: '#0d111a',
+      muted: 'rgba(8, 12, 24, 0.65)',
+    };
+  }
+  return {
+    base,
+    light: shadeColor(base, 0.35),
+    dark: shadeColor(base, -0.45),
+    accent: shadeColor(base, 0.55),
+    contrast: shadeColor(base, -0.2),
+    shadow: hexToRgba(base, 0.45),
+    text: '#f4f6ff',
+    muted: 'rgba(255, 255, 255, 0.65)',
+  };
+}
+
+function applyWinnerTheme(theme) {
+  if (!theme) return;
+  lastWinnerTheme = theme;
+  const content = winnerModal ? winnerModal.querySelector('.modal-content') : null;
+  if (!content) return;
+  const vars = {
+    '--winner-bg-lite': theme.light,
+    '--winner-bg-dark': theme.dark,
+    '--winner-primary': theme.base,
+    '--winner-primary-dark': theme.contrast,
+    '--winner-accent': theme.accent,
+    '--winner-shadow': theme.shadow,
+    '--winner-text': theme.text,
+    '--winner-muted': theme.muted,
+  };
+  Object.entries(vars).forEach(([k, v]) => content.style.setProperty(k, v));
 }
 
 function nameToColor(name) {
@@ -877,6 +977,18 @@ function showWinnerModal() {
 
   const winnerAgent = agents[index];
   if (!winnerAgent) return; // safety check for undefined agent
+  lastWinnerAgent = winnerAgent;
+  try {
+    if (crypto?.randomUUID) lastSpinProofId = crypto.randomUUID();
+    else lastSpinProofId = 'SPIN-' + Date.now().toString(36);
+  } catch (e) {
+    lastSpinProofId = 'SPIN-' + Date.now().toString(36);
+  }
+  try {
+    applyWinnerTheme(computeWinnerTheme(winnerAgent.color));
+  } catch (e) {}
+  if (shareWinnerBtn) shareWinnerBtn.disabled = false;
+  if (shareStatus) shareStatus.textContent = '';
   
   // Show winner modal immediately
   if (winnerModal && winnerModalName && winnerModalImage) {
@@ -923,6 +1035,8 @@ function closeWinnerModal(options = {}) {
   winnerModal.setAttribute('inert', '');
   idlePaused = false;
   winnerModalOpen = false;
+  lastWinnerAgent = null;
+  lastSpinProofId = null;
   try { stopDrumroll(); } catch (e) {}
   if (spinBtn) {
     spinBtn.disabled = false;
@@ -930,6 +1044,241 @@ function closeWinnerModal(options = {}) {
       try { spinBtn.focus({preventScroll: true}); }
       catch (e) { try { spinBtn.focus(); } catch (err) {} }
     }
+  }
+  if (shareWinnerBtn) shareWinnerBtn.disabled = true;
+  setShareStatus('');
+}
+
+function getWinnerImageUrl(agent) {
+  const src = agent?.img || 'assets/images/default-avatar.jpg';
+  if (!src) return null;
+  try {
+    return new URL(src, window.location.href).href;
+  } catch (e) {
+    return src;
+  }
+}
+
+function formatWinnerShareMessage(agent) {
+  const name = agent?.name || 'Unknown Agent';
+  const timestamp = new Date().toLocaleString();
+  const imageUrl = getWinnerImageUrl(agent);
+  const lines = [
+    '**🎯 Valorant Wheel Spin Result**',
+    `> Winner: **${name}**`,
+    `> Spin Time: ${timestamp}`,
+    lastSpinProofId ? `> Proof ID: \`${lastSpinProofId}\`` : null,
+  ].filter(Boolean);
+  if (imageUrl) {
+    lines.push(`> Image: ${imageUrl}`);
+  }
+  if (window?.location?.href) {
+    lines.push('');
+    lines.push(`Spin for yourself: ${window.location.href}`);
+  }
+  if (imageUrl) {
+    lines.push('');
+    lines.push(`![${name}](${imageUrl})`);
+  }
+  lines.push('');
+  lines.push('_Sent via Valorant Agent Wheelspin_');
+  return lines.join('\n');
+}
+
+async function copyWinnerShareMessage(agent) {
+  const message = formatWinnerShareMessage(agent);
+  if (!message) return false;
+  try {
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(message);
+      return true;
+    }
+  } catch (e) {
+    // fall through to fallback
+  }
+  try {
+    const textarea = document.createElement('textarea');
+    textarea.value = message;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'absolute';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    const successful = document.execCommand('copy');
+    document.body.removeChild(textarea);
+    return successful;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function loadAgentImageBitmap(agent) {
+  const url = getWinnerImageUrl(agent);
+  if (!url) return null;
+  try {
+    const res = await fetch(url, {mode: 'cors'});
+    if (res.ok) {
+      const blob = await res.blob();
+      if (window.createImageBitmap) {
+        return await createImageBitmap(blob);
+      }
+      return await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = URL.createObjectURL(blob);
+      });
+    }
+  } catch (e) {
+    // fall through to direct image load
+  }
+  return await new Promise((resolve, reject) => {
+    const img = new Image();
+    try {
+      if (!url.startsWith('file:')) img.crossOrigin = 'anonymous';
+    } catch (e) {}
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+}
+
+async function generateWinnerShareCanvas(agent, theme = lastWinnerTheme) {
+  const appliedTheme = theme || computeWinnerTheme(agent?.color);
+  const base = appliedTheme?.base || '#7b8bff';
+  const dark = appliedTheme?.dark || '#1c2240';
+  const accent = appliedTheme?.accent || '#f4f6ff';
+  const width = 900;
+  const height = 480;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  const gradient = ctx.createLinearGradient(0, 0, width, height);
+  gradient.addColorStop(0, shadeColor(base, -0.5));
+  gradient.addColorStop(1, dark);
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+  for (let i = 0; i < 4; i++) {
+    const w = 80 + Math.random() * 160;
+    const h = 8 + Math.random() * 14;
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    ctx.fillRect(x, y, w, h);
+  }
+  ctx.fillStyle = hexToRgba(base, 0.25);
+  for (let i = 0; i < 3; i++) {
+    ctx.beginPath();
+    const size = 120 + Math.random() * 60;
+    ctx.arc(650 + Math.random() * 120, 80 + i * 120, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const agentImage = await loadAgentImageBitmap(agent);
+  if (agentImage) {
+    const imgSize = 320;
+    const imgX = 60;
+    const imgY = (height - imgSize) / 2;
+    ctx.save();
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(imgX, imgY, imgSize, imgSize, 32);
+    else {
+      const r = 32;
+      ctx.moveTo(imgX + r, imgY);
+      ctx.lineTo(imgX + imgSize - r, imgY);
+      ctx.quadraticCurveTo(imgX + imgSize, imgY, imgX + imgSize, imgY + r);
+      ctx.lineTo(imgX + imgSize, imgY + imgSize - r);
+      ctx.quadraticCurveTo(imgX + imgSize, imgY + imgSize, imgX + imgSize - r, imgY + imgSize);
+      ctx.lineTo(imgX + r, imgY + imgSize);
+      ctx.quadraticCurveTo(imgX, imgY + imgSize, imgX, imgY + imgSize - r);
+      ctx.lineTo(imgX, imgY + r);
+      ctx.quadraticCurveTo(imgX, imgY, imgX + r, imgY);
+      ctx.closePath();
+    }
+    ctx.clip();
+    ctx.drawImage(agentImage, imgX, imgY, imgSize, imgSize);
+    ctx.restore();
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(imgX, imgY, imgSize, imgSize, 32);
+    else ctx.strokeRect(imgX, imgY, imgSize, imgSize);
+    ctx.stroke();
+  }
+
+  const name = agent?.name || 'Unknown Agent';
+  const timestamp = new Date().toLocaleString();
+  ctx.fillStyle = hexToRgba(base, 0.65);
+  ctx.font = '18px "Segoe UI", "Montserrat", sans-serif';
+  ctx.fillText('Valorant Agent Wheelspin', 420, 70);
+
+  ctx.fillStyle = accent;
+  ctx.font = '48px "Montserrat", "Segoe UI", sans-serif';
+  ctx.fillText(name, 420, 135);
+
+  ctx.fillStyle = '#c6c9ff';
+  ctx.font = '22px "Segoe UI", sans-serif';
+  ctx.fillText(`Spin Time: ${timestamp}`, 420, 200);
+
+  const url = window?.location?.href;
+  if (url) {
+    ctx.fillStyle = '#8ea1ff';
+    ctx.font = '18px "Segoe UI", sans-serif';
+    ctx.fillText(url, 420, 280);
+  }
+
+  ctx.fillStyle = '#8c93c9';
+  ctx.font = '18px "Segoe UI", sans-serif';
+  ctx.fillText('_Generated via Valorant Agent Wheelspin_', 420, 330);
+
+  return canvas;
+}
+
+async function copyWinnerShareImage(agent) {
+  try {
+    const canvas = await generateWinnerShareCanvas(agent);
+    if (!canvas) return {success: false, reason: 'canvas'};
+    return await new Promise((resolve) => {
+      canvas.toBlob(async (blob) => {
+        if (!blob) return resolve({success: false, reason: 'blob'});
+        try {
+          if (navigator?.clipboard?.write && window.ClipboardItem) {
+            const item = new ClipboardItem({'image/png': blob});
+            await navigator.clipboard.write([item]);
+            return resolve({success: true, mode: 'image'});
+          }
+        } catch (e) {
+          // continue to fallback
+        }
+        resolve({success: false, reason: 'unsupported'});
+      }, 'image/png');
+    });
+  } catch (e) {
+    return {success: false, reason: 'error'};
+  }
+}
+
+function setShareStatus(message, type = 'info') {
+  if (!shareStatus) return;
+  shareStatus.textContent = message || '';
+  let color = 'var(--winner-muted)';
+  if (type === 'success') color = 'var(--winner-text)';
+  else if (type === 'error') color = '#ff9a9a';
+  shareStatus.style.color = color;
+  if (shareStatusTimer) {
+    clearTimeout(shareStatusTimer);
+    shareStatusTimer = null;
+  }
+  if (message) {
+    shareStatusTimer = setTimeout(() => {
+      shareStatus.textContent = '';
+      shareStatusTimer = null;
+    }, 4000);
   }
 }
 
@@ -955,6 +1304,27 @@ const drumrollEnabledToggle = document.getElementById('drumrollEnabledToggle');
 const drumrollVolumeRange = document.getElementById('drumrollVolumeRange');
 const drumrollLeadRange = document.getElementById('drumrollLeadRange');
 const drumrollLeadLabel = document.getElementById('drumrollLeadLabel');
+
+if (shareWinnerBtn) {
+  shareWinnerBtn.disabled = true;
+  shareWinnerBtn.addEventListener('click', async () => {
+    if (!lastWinnerAgent) return;
+    setShareStatus('Generating proof image...', 'info');
+    shareWinnerBtn.disabled = true;
+    const imageResult = await copyWinnerShareImage(lastWinnerAgent);
+    if (imageResult.success) {
+      setShareStatus('Proof image copied! Paste it with Ctrl+V.', 'success');
+    } else {
+      const textFallback = await copyWinnerShareMessage(lastWinnerAgent);
+      if (textFallback) {
+        setShareStatus('Image copy blocked; fallback text copied instead.', 'info');
+      } else {
+        setShareStatus('Copy failed. Please screenshot manually.', 'error');
+      }
+    }
+    if (lastWinnerAgent) shareWinnerBtn.disabled = false;
+  });
+}
 
 if (globalWinSoundSelect) {
   globalWinSoundSelect.value = globalWinSoundPath;
