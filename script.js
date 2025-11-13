@@ -191,9 +191,11 @@ let drumEnabled = JSON.parse(localStorage.getItem('drumEnabled')) ?? true;
 let drumVolume = parseFloat(localStorage.getItem('drumVolume'));
 if (isNaN(drumVolume)) drumVolume = 0.9;
 let drumLeadMs = parseInt(localStorage.getItem('drumLeadMs'));
-if (isNaN(drumLeadMs)) drumLeadMs = 1200; // how long before selection to start drumroll
+if (isNaN(drumLeadMs)) drumLeadMs = 2200; // how long before selection to start drumroll
 let drumScheduled = false;
 let drumSources = []; // active AudioBufferSourceNodes or timeouts for fallback
+let drumStopTimeout = null;
+let drumFadeInterval = null;
 
 // Center icon (stationary, non-spinning)
 let centerIcon = null;
@@ -377,6 +379,8 @@ window.addEventListener('resize', () => {
 // Wheel spinning logic (new): idle slow spin + user-triggered spin with smooth deceleration
 function spinWheel() {
   if (spinning || agents.length === 0 || winnerModalOpen) return;
+  // ensure any previous drumroll loop is cleared before a new spin
+  try { stopDrumroll(); } catch (e) {}
   spinning = true;
   spinTriggered = true;
 
@@ -454,8 +458,6 @@ function animationLoop(ts) {
       startAngle += angularVelocity * dtSec;
       if (p >= 1 || angularVelocity <= 0.00001) {
         // spin finished
-        // stop drumroll immediately when spin finishes
-        try { stopDrumroll(); } catch (e) {}
         spinTriggered = false;
         spinInDecel = false;
         spinning = false;
@@ -711,6 +713,14 @@ function startDrumroll() {
 }
 
 function stopDrumroll() {
+  if (drumStopTimeout) {
+    clearTimeout(drumStopTimeout);
+    drumStopTimeout = null;
+  }
+  if (drumFadeInterval) {
+    clearInterval(drumFadeInterval);
+    drumFadeInterval = null;
+  }
   if (!drumScheduled) return;
   drumScheduled = false;
   try {
@@ -731,14 +741,76 @@ function stopDrumroll() {
   } catch (e) {}
 }
 
+function fadeOutDrumroll(fadeDurationMs = 800) {
+  if (!drumScheduled) return;
+  const duration = Math.max(60, fadeDurationMs | 0);
+
+  if (audioCtx && drumSources.length) {
+    try {
+      const now = audioCtx.currentTime;
+      const fadeSeconds = duration / 1000;
+      for (const s of drumSources) {
+        if (s?.gain?.gain) {
+          const current = s.gain.gain.value;
+          s.gain.gain.cancelScheduledValues(now);
+          s.gain.gain.setValueAtTime(current, now);
+          s.gain.gain.linearRampToValueAtTime(0.0001, now + fadeSeconds);
+        }
+      }
+    } catch (e) {}
+  }
+
+  if (fallbackDrumAudio) {
+    try {
+      const startVol = fallbackDrumAudio.volume;
+      const stepCount = Math.max(2, Math.floor(duration / 50));
+      const stepMs = duration / stepCount;
+      const delta = startVol / stepCount;
+      if (drumFadeInterval) {
+        clearInterval(drumFadeInterval);
+        drumFadeInterval = null;
+      }
+      let steps = 0;
+      drumFadeInterval = setInterval(() => {
+        steps++;
+        fallbackDrumAudio.volume = Math.max(0, startVol - delta * steps);
+        if (steps >= stepCount) {
+          clearInterval(drumFadeInterval);
+          drumFadeInterval = null;
+        }
+      }, stepMs);
+    } catch (e) {}
+  }
+
+  if (drumStopTimeout) {
+    clearTimeout(drumStopTimeout);
+    drumStopTimeout = null;
+  }
+  drumStopTimeout = setTimeout(() => {
+    drumStopTimeout = null;
+    try { stopDrumroll(); } catch (e) {}
+  }, duration + 20);
+}
+
+function scheduleDrumrollStop(delayMs = 1800, fadeDurationMs = 300) {
+  const delay = Math.max(0, delayMs | 0);
+  if (drumStopTimeout) {
+    clearTimeout(drumStopTimeout);
+    drumStopTimeout = null;
+  }
+  drumStopTimeout = setTimeout(() => {
+    drumStopTimeout = null;
+    fadeOutDrumroll(fadeDurationMs);
+  }, delay);
+}
+
 // Start loading drumroll sound immediately
 loadDrumrollSound().catch(() => {});
 
 // Stop and select winner — show modal immediately without overshoot snap
 function showWinnerModal() {
-  // ensure drumroll is stopped when showing winner
-  try { stopDrumroll(); } catch (e) {}
   if (!agents || agents.length === 0) return; // safety check
+  try { scheduleDrumrollStop(1200); } catch (e) {}
   
   const arc = Math.PI * 2 / agents.length;
   // Marker is at the top, pointing downwards (angle = -Math.PI/2). Find which slice covers that absolute angle
@@ -926,6 +998,7 @@ if (winnerModal && closeWinner) {
     idlePaused = false;
     // allow idle to gracefully resume (angularVelocity will blend toward idleAngularVelocity)
     winnerModalOpen = false;
+    try { stopDrumroll(); } catch (e) {}
     if (spinBtn) spinBtn.disabled = false;
   });
 }
@@ -934,6 +1007,7 @@ if (closeWinnerBtn && winnerModal) {
     winnerModal.setAttribute('aria-hidden', 'true');
     idlePaused = false;
     winnerModalOpen = false;
+    try { stopDrumroll(); } catch (e) {}
     if (spinBtn) spinBtn.disabled = false;
   });
 }
@@ -945,6 +1019,7 @@ if (winnerModal) {
       winnerModal.setAttribute('aria-hidden', 'true');
       idlePaused = false;
       winnerModalOpen = false;
+      try { stopDrumroll(); } catch (e) {}
       if (spinBtn) spinBtn.disabled = false;
     }
   });
