@@ -5,7 +5,9 @@ function drawWheel() {
   const cssHeight = canvas.height / dpr;
   const centerX = cssWidth / 2;
   const centerY = cssHeight / 2;
-  const radius = Math.min(cssWidth, cssHeight) / 2; // margin
+  const maxRadius = Math.min(cssWidth, cssHeight) / 2;
+  const edgeInset = Math.min(Math.max(maxRadius * 0.02, 32), 32);
+  const radius = maxRadius - edgeInset;
   const arc = Math.PI * 2 / agents.length;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -14,21 +16,85 @@ function drawWheel() {
     const midAngle = angle + arc / 2;
     ctx.save();
     ctx.beginPath();
-    ctx.fillStyle = agent.color || '#666';
+    const baseColor = agent.color || '#666';
+    const innerRadius = radius * 0.6;
+    const gradient = ctx.createRadialGradient(centerX, centerY, innerRadius * 0.9, centerX, centerY, radius);
+    gradient.addColorStop(0, shadeColor(baseColor, 0.18));
+    gradient.addColorStop(0.32, shadeColor(baseColor, 0.08));
+    gradient.addColorStop(0.6, baseColor);
+    gradient.addColorStop(0.82, shadeColor(baseColor, -0.14));
+    gradient.addColorStop(1, shadeColor(baseColor, -0.26));
+    ctx.fillStyle = gradient;
     ctx.moveTo(centerX, centerY);
     ctx.arc(centerX, centerY, radius, angle, angle + arc, false);
     ctx.closePath();
-    // add subtle drop shadow per slice for depth
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
-    ctx.shadowBlur = Math.max(4, radius * 0.03);
-    ctx.shadowOffsetX = Math.cos(midAngle) * 2;
-    ctx.shadowOffsetY = Math.sin(midAngle) * 2;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = Math.max(6, radius * 0.04);
+    ctx.shadowOffsetX = Math.cos(midAngle) * 4;
+    ctx.shadowOffsetY = Math.sin(midAngle) * 4;
     ctx.fill();
-    // outline slice to separate colors visually
-    ctx.shadowColor = 'transparent';
-    ctx.lineWidth = Math.max(1, radius * 0.01);
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.lineWidth = Math.max(1.2, radius * 0.005);
+    const borderGradient = ctx.createLinearGradient(
+      centerX + Math.cos(angle) * radius,
+      centerY + Math.sin(angle) * radius,
+      centerX + Math.cos(angle + arc) * radius,
+      centerY + Math.sin(angle + arc) * radius
+    );
+    borderGradient.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
+    borderGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.08)');
+    borderGradient.addColorStop(1, 'rgba(0, 0, 0, 0.18)');
+    ctx.strokeStyle = borderGradient;
     ctx.stroke();
+
+    // Accent separator along the leading slice edge to make borders pop
+    ctx.save();
+    ctx.lineCap = 'round';
+    const separatorStart = radius * 0.25;
+    const sepInnerX = centerX + Math.cos(angle) * separatorStart;
+    const sepInnerY = centerY + Math.sin(angle) * separatorStart;
+    const sepOuterX = centerX + Math.cos(angle) * radius;
+    const sepOuterY = centerY + Math.sin(angle) * radius;
+    ctx.lineWidth = Math.max(2.2, radius * 0.0095);
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.32)';
+    ctx.beginPath();
+    ctx.moveTo(sepInnerX, sepInnerY);
+    ctx.lineTo(sepOuterX, sepOuterY);
+    ctx.stroke();
+
+    ctx.lineWidth = Math.max(1.2, radius * 0.006);
+    const separatorGradient = ctx.createLinearGradient(sepInnerX, sepInnerY, sepOuterX, sepOuterY);
+    separatorGradient.addColorStop(0, 'rgba(255,255,255,0.08)');
+    separatorGradient.addColorStop(0.4, 'rgba(255,255,255,0.25)');
+    separatorGradient.addColorStop(1, 'rgba(255,255,255,0.1)');
+    ctx.strokeStyle = separatorGradient;
+    ctx.stroke();
+    ctx.restore();
+
+    // Add a clipped gloss overlay to make each slice appear shinier
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.arc(centerX, centerY, radius, angle, angle + arc, false);
+    ctx.closePath();
+    ctx.clip();
+    const glossInner = radius * 0.3;
+    const glossOuter = radius * 0.9;
+    const glossGradient = ctx.createRadialGradient(
+      centerX + Math.cos(midAngle) * glossInner * 0.25,
+      centerY + Math.sin(midAngle) * glossInner * 0.25,
+      glossInner,
+      centerX + Math.cos(midAngle) * glossInner,
+      centerY + Math.sin(midAngle) * glossInner,
+      glossOuter
+    );
+    glossGradient.addColorStop(0, 'rgba(255,255,255,0.22)');
+    glossGradient.addColorStop(0.35, 'rgba(255,255,255,0.1)');
+    glossGradient.addColorStop(0.65, 'rgba(255,255,255,0.04)');
+    glossGradient.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = glossGradient;
+    ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
+    ctx.restore();
     ctx.restore();
 
     // Draw agent image if available — larger and spaced further out
@@ -38,7 +104,7 @@ function drawWheel() {
         const imgDist = Math.floor(radius * 0.85);
         const baseSize = Math.floor(radius);
         // chord length at imgDist gives max available width inside slice
-        const maxWidth = 2 * imgDist * Math.sin(arc / 1.5);
+        const maxWidth = 3 * imgDist * Math.sin(arc / 2.5);
         // also ensure image stays inside radial bounds
         const radialAvailable = Math.max(0, 2 * (radius - imgDist));
         let imgSize = Math.max(18, Math.min(baseSize, Math.floor(maxWidth * 0.82), Math.floor(radialAvailable * 0.9)));
@@ -81,15 +147,43 @@ function drawWheel() {
     const rightY = leftY;
 
     ctx.save();
+    const baseMidX = (leftX + rightX) / 2;
+    const baseMidY = leftY;
+    const pointerGradient = ctx.createLinearGradient(tipX, tipY, baseMidX, baseMidY);
+    pointerGradient.addColorStop(0, '#fff7c6');
+    pointerGradient.addColorStop(0.45, '#ffd45c');
+    pointerGradient.addColorStop(1, '#b87300');
+
     ctx.beginPath();
     ctx.moveTo(tipX, tipY);
     ctx.lineTo(leftX, leftY);
     ctx.lineTo(rightX, rightY);
     ctx.closePath();
-    ctx.fillStyle = '#ffcc00';
-    ctx.shadowColor = 'rgba(0,0,0,0.4)';
-    ctx.shadowBlur = 6;
+    ctx.fillStyle = pointerGradient;
+    ctx.shadowColor = 'rgba(0,0,0,0.55)';
+    ctx.shadowBlur = Math.max(8, radius * 0.05);
+    ctx.shadowOffsetY = Math.max(3, radius * 0.015);
     ctx.fill();
+
+    ctx.lineWidth = Math.max(1.5, radius * 0.007);
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.stroke();
+
+    ctx.save();
+    ctx.clip();
+    ctx.beginPath();
+    ctx.moveTo(tipX, tipY + Math.max(2, triHeight * 0.12));
+    ctx.lineTo(centerX - triWidth * 0.35, leftY + triHeight * 0.2);
+    ctx.lineTo(centerX + triWidth * 0.35, rightY + triHeight * 0.2);
+    ctx.closePath();
+    const highlightGradient = ctx.createLinearGradient(tipX, tipY, baseMidX, baseMidY);
+    highlightGradient.addColorStop(0, 'rgba(255,255,255,0.9)');
+    highlightGradient.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = highlightGradient;
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fill();
+    ctx.restore();
+
     ctx.restore();
   } catch (e) {
     // ignore marker render errors
@@ -114,7 +208,10 @@ function drawWheel() {
       ctx.shadowBlur = Math.max(10, radius * 0.08);
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = Math.max(4, radius * 0.02);
-      ctx.fillStyle = '#ffffff';
+      const iconGradient = ctx.createRadialGradient(centerX, centerY, iconSize * 0.05, centerX, centerY, iconSize * 0.5);
+      iconGradient.addColorStop(0, '#ffffff');
+      iconGradient.addColorStop(1, 'rgba(255,255,255,0.85)');
+      ctx.fillStyle = iconGradient;
       ctx.fill();
       // Clip to circle and draw icon
       ctx.beginPath();
@@ -127,8 +224,25 @@ function drawWheel() {
       ctx.save();
       ctx.beginPath();
       ctx.arc(centerX, centerY, iconSize / 2, 0, Math.PI * 2);
-      ctx.lineWidth = Math.max(4, radius * 0.025);
-      ctx.strokeStyle = centerIconBorderColor;
+      ctx.lineWidth = Math.max(5, radius * 0.03);
+      const outerRingGradient = ctx.createLinearGradient(iconX, iconY, iconX + iconSize, iconY + iconSize);
+      outerRingGradient.addColorStop(0, 'rgba(255,255,255,0.9)');
+      outerRingGradient.addColorStop(1, 'rgba(200,200,200,0.6)');
+      ctx.strokeStyle = outerRingGradient;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowBlur = Math.max(8, radius * 0.06);
+      ctx.stroke();
+      ctx.restore();
+
+      // inner ring
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, iconSize / 2 - ctx.lineWidth, 0, Math.PI * 2);
+      ctx.lineWidth = Math.max(2.5, radius * 0.015);
+      const ringGradient = ctx.createLinearGradient(iconX, iconY, iconX + iconSize, iconY + iconSize);
+      ringGradient.addColorStop(0, '#0a0a0aff');
+      ringGradient.addColorStop(1, '#ffffffff');
+      ctx.strokeStyle = ringGradient;
       ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
       ctx.shadowBlur = Math.max(6, radius * 0.05);
       ctx.stroke();
