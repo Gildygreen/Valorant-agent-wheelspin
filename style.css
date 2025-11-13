@@ -201,6 +201,93 @@ canvas {
   color: var(--winner-muted);
 }
 
+.stacked-setting {
+  margin-top: 12px;
+  text-align: left;
+}
+
+.range-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 4px;
+}
+
+.agent-setting {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.agent-setting-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.agent-setting-title {
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.agent-sound-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.agent-sound-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.agent-sound-row label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.agent-sound-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.agent-sound-actions button {
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  cursor: pointer;
+}
+
+.agent-sound-actions button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.agent-sound-empty {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
 .debug-panel {
   position: fixed;
   bottom: 16px;
@@ -397,28 +484,6 @@ canvas {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-}
-
-#globalSoundSection {
-  margin-top: 30px;
-  font-size: 18px;
-}
-
-#globalWinSoundSelect {
-  margin: 10px;
-}
-
-#previewGlobalWinSound {
-  padding: 8px 12px;
-  cursor: pointer;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 5px;
-}
-
-#previewGlobalWinSound:hover {
-  background-color: #45a049;
 }
 
 /* Agent List */

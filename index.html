@@ -37,7 +37,7 @@
   <!-- Agent list -->
   <div id="agentList"></div>
 
-  <!-- Global sound section -->
+  <!-- Sound settings -->
   <!-- Settings cog and modal (sound/customization moved into modal) -->
   <button id="settingsBtn" class="settings-btn" title="Settings">⚙️</button>
 
@@ -46,18 +46,17 @@
       <span id="closeSettings" class="close" role="button" aria-label="Close">&times;</span>
       <h3>Sound & Customization</h3>
 
-      <div id="globalSoundSection">
-        <label for="globalWinSoundSelect">Choose a global win sound:</label>
-        <select id="globalWinSoundSelect">
-          <option value="assets/sounds/jett.mp3">Jett Sound</option>
-          <option value="assets/sounds/phoenix.mp3">Phoenix Sound</option>
-          <option value="assets/sounds/sage.mp3">Sage Sound</option>
-        </select>
-        <button id="previewGlobalWinSound">🔊 Preview</button>
-      </div>
-
       <div>
         <label><input type="checkbox" id="randomizeWinSoundsToggle"> Randomize Per-Agent Win Sounds</label>
+      </div>
+
+      <div id="agentSoundSettings" class="stacked-setting">
+        <h4>Agent win sound</h4>
+        <div class="range-label-row">
+          <label for="agentWinVolumeRange">Volume</label>
+          <span id="agentVolumeLabel">90%</span>
+        </div>
+        <input id="agentWinVolumeRange" type="range" min="0" max="1" step="0.01" value="0.9" />
       </div>
 
       <hr />
@@ -80,11 +79,6 @@
         <div style="margin-top:8px;">
           <label for="drumrollVolumeRange">Drumroll volume</label>
           <input id="drumrollVolumeRange" type="range" min="0" max="1" step="0.01" value="0.9" />
-        </div>
-        <div style="margin-top:8px;">
-          <label for="drumrollLeadRange">Drumroll lead time (ms)</label>
-          <input id="drumrollLeadRange" type="range" min="300" max="3000" step="100" value="1200" />
-          <span id="drumrollLeadLabel">1200 ms</span>
         </div>
       </div>
 
@@ -109,6 +103,7 @@
   </div>
 
   <script src="data/agents.js"></script>
+  <script src="data/agent-sound-manifest.js"></script>
   <script src="js/base.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/winner.js"></script>

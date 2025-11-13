@@ -23,9 +23,9 @@ const debugShowWinnerBtn = document.getElementById('debugShowWinnerBtn');
 const debugHideBtn = document.getElementById('debugHideBtn');
 
 // Store user preferences
-let useAgentSounds = JSON.parse(localStorage.getItem('useAgentSounds')) ?? true;
-let globalWinSoundPath = localStorage.getItem('globalWinSoundPath') || 'assets/sounds/win.mp3';
 let randomizeWinSounds = JSON.parse(localStorage.getItem('randomizeWinSounds')) ?? false;
+let agentWinVolume = parseFloat(localStorage.getItem('agentWinVolume'));
+if (isNaN(agentWinVolume)) agentWinVolume = 0.9;
 
 // Tick sound preferences
 let tickEnabled = JSON.parse(localStorage.getItem('tickEnabled')) ?? true;
@@ -89,8 +89,7 @@ let fallbackDrumAudio = null;
 let drumEnabled = JSON.parse(localStorage.getItem('drumEnabled')) ?? true;
 let drumVolume = parseFloat(localStorage.getItem('drumVolume'));
 if (isNaN(drumVolume)) drumVolume = 0.9;
-let drumLeadMs = parseInt(localStorage.getItem('drumLeadMs'));
-if (isNaN(drumLeadMs)) drumLeadMs = 2200; // how long before selection to start drumroll
+let drumLeadMs = 2200; // how long before selection to start drumroll
 let drumScheduled = false;
 let drumSources = []; // active AudioBufferSourceNodes or timeouts for fallback
 let drumStopTimeout = null;

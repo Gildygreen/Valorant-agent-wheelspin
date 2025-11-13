@@ -9,18 +9,31 @@ function generateProofId(prefix = 'SPIN') {
   return prefix ? `${prefix}-${token}` : token;
 }
 
+function getAvailableAgentSounds(agent) {
+  if (!agent?.winSounds) return [];
+  return agent.winSounds.filter((sound) => sound?.path && (sound.enabled !== false || sound.isDefault));
+}
+
 function getWinSoundPath(agent) {
   if (!agent) return null;
-  if (randomizeWinSounds && Array.isArray(agent.winSounds) && agent.winSounds.length) {
-    const idx = Math.floor(Math.random() * agent.winSounds.length);
-    return agent.winSounds[idx]?.path || null;
+  const available = getAvailableAgentSounds(agent);
+  if (!available.length) return null;
+  if (randomizeWinSounds && available.length > 1) {
+    const idx = Math.floor(Math.random() * available.length);
+    return available[idx]?.path || null;
   }
-  if (useAgentSounds && Array.isArray(agent.winSounds) && agent.winSounds.length) {
-    const defaultSound = agent.winSounds.find((s) => s.isDefault);
-    if (defaultSound?.path) return defaultSound.path;
-    return agent.winSounds[0]?.path || null;
-  }
-  return globalWinSoundPath || null;
+  const defaultSound = available.find((s) => s.isDefault);
+  return (defaultSound || available[0])?.path || null;
+}
+
+function playWinSound(path) {
+  if (!path) return;
+  try {
+    const audio = new Audio(path);
+    audio.volume = agentWinVolume;
+    audio.preload = 'auto';
+    audio.play().catch(() => {});
+  } catch (e) {}
 }
 
 function openWinnerModalForAgent(agent, options = {}) {
@@ -55,13 +68,7 @@ function openWinnerModalForAgent(agent, options = {}) {
   }
 
   if (playSound) {
-    const winSoundPath = getWinSoundPath(agent);
-    if (winSoundPath) {
-      try {
-        const audio = new Audio(winSoundPath);
-        audio.play().catch(() => {});
-      } catch (e) {}
-    }
+    playWinSound(getWinSoundPath(agent));
   }
 }
 
