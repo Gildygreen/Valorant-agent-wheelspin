@@ -11,6 +11,8 @@ body {
 
 /* Hide role filter bar when any modal is open */
 body.modal-open #roleFilterBar { display: none; }
+/* Also hide role filter bar while team feed is visible */
+body.team-feed-visible #roleFilterBar { display: none; }
 
 /* Left role filter bar */
 #roleFilterBar {
@@ -23,6 +25,61 @@ body.modal-open #roleFilterBar { display: none; }
   gap: 12px;
   z-index: 10;
 }
+
+/* Team feed on the left */
+.team-feed {
+  position: fixed;
+  left: 16px;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: calc(100vh - 120px);
+  overflow: auto;
+  z-index: 9;
+}
+.team-feed-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  padding: 6px 10px;
+  transform: translateX(-20px);
+  opacity: 0;
+  transition: transform 240ms ease, opacity 240ms ease;
+}
+.team-feed-item.entered {
+  transform: translateX(0);
+  opacity: 1;
+}
+.team-feed-item img {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+.team-feed-item .tf-player { font-weight: 700; }
+.team-feed-item .tf-role { opacity: 0.8; font-size: 0.85rem; }
+
+.team-feed-controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  position: sticky;
+  top: 0;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 6px;
+  border-radius: 10px;
+}
+.team-feed-copy,
+.team-feed-close {
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+.team-feed-controls.hidden { display: none; }
 
 .role-btn {
   width: 72px;
@@ -63,6 +120,7 @@ body.modal-open #roleFilterBar { display: none; }
     gap: 10px;
   }
   .role-btn { width: 56px; height: 56px; }
+  .team-feed { left: 8px; top: 8px; max-width: 60vw; }
 }
 
 #appMain {
@@ -540,6 +598,17 @@ canvas {
 }
 
 /* Inputs inside settings modal */
+.settings-modal select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px;
+  padding-right: 34px;
+}
+.settings-modal select option { background: #1a1a28; color: #fff; }
 .settings-modal input[type="text"],
 .settings-modal input[type="number"],
 .settings-modal select,

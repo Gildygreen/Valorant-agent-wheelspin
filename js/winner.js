@@ -98,7 +98,14 @@ function showWinnerModal() {
 
   const winnerAgent = agents[index];
   if (!winnerAgent) return; // safety check for undefined agent
-  openWinnerModalForAgent(winnerAgent, { playSound: true, proofPrefix: 'SPIN' });
+  try { if (typeof window.onWinnerSelected === 'function') window.onWinnerSelected(winnerAgent); } catch (e) {}
+  // If team roll mode suppresses the winner modal, just play the sound and set lastWinnerAgent
+  if (window && window.suppressWinnerModal) {
+    try { lastWinnerAgent = winnerAgent; } catch (e) {}
+    try { playWinSound(getWinSoundPath(winnerAgent)); } catch (e) {}
+  } else {
+    openWinnerModalForAgent(winnerAgent, { playSound: true, proofPrefix: 'SPIN' });
+  }
 
   // Re-enable the spin button after the spin completes
   if (spinBtn) spinBtn.disabled = false;

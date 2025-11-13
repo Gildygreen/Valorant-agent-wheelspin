@@ -25,6 +25,13 @@
     </button>
   </nav>
 
+  <!-- Team results feed (slides in entries from the left) -->
+  <aside id="teamFeed" class="team-feed" aria-live="polite"></aside>
+  <div class="team-feed-controls hidden">
+    <button id="teamCopyProofBtn" class="team-feed-copy modal-button" type="button" title="Copy team proof image" aria-label="Copy team proof image" disabled>⧉ Copy</button>
+    <button id="teamFeedCloseBtn" class="team-feed-close modal-button" type="button" title="Hide team results" aria-label="Hide team results" disabled>✕ Hide</button>
+  </div>
+
   <!-- Canvas for the wheel spinner -->
   <div id="wheelContainer" class="loading">
     <div id="wheelLoading" class="wheel-loading" role="status" aria-live="polite">
