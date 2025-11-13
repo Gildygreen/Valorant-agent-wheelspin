@@ -88,6 +88,8 @@ function applyRandomizeSoundRules() {
 
 window.applyRandomizeSoundRules = applyRandomizeSoundRules;
 applyRandomizeSoundRules();
+// Expose builder for on-demand use by UI
+window.buildAgentSoundList = buildAgentSoundList;
 
 function isAgentSoundEnabled(agentName, soundPath, isDefault = false) {
   if (!soundPath) return false;
@@ -146,15 +148,13 @@ function applyManifestSounds(agent) {
     };
   });
   agent.winSounds = sounds;
-  sounds.forEach((s) => preloadAudioSource(s.path));
+  // Do not preload audio here; defer loading until playback or on-demand
   return true;
 }
 
 function preloadAudioSource(path) {
-  try {
-    const audio = new Audio(path);
-    audio.preload = 'auto';
-  } catch (e) {}
+  // Intentionally disabled to prevent flooding the network with many audio requests.
+  // We will let the browser load audio when it is actually played.
 }
 
 function assetExistsViaAudio(url, timeoutMs = 1800) {
@@ -254,24 +254,18 @@ async function buildAgentSoundList(agent) {
     sound.enabled = isAgentSoundEnabled(agent.name, sound.path, sound.isDefault);
   });
   agent.winSounds = sounds;
+  agent._soundsBuilt = true;
 }
 
 async function preloadAgentSoundVariants(list = []) {
-  await Promise.all(list.map(async (agent) => {
-    try {
-      await buildAgentSoundList(agent);
-    } catch (e) {
-      console.warn('Failed to preload win sounds for', agent?.name, e);
-    }
-  }));
+  // Disabled aggressive preloading. Left in place for potential future use.
+  for (const agent of list) {
+    try { /* noop */ } catch (e) {}
+  }
 }
 
 (async () => {
-  try {
-    await preloadAgentSoundVariants(agents);
-  } catch (e) {
-    console.warn('Agent sound discovery failed', e);
-  }
+  // Skip bulk audio preloading to avoid hundreds of pending requests.
   try { applyRandomizeSoundRules(); } catch (e) {}
   try { populatePerAgentSettings(); } catch (e) {}
   try { populateDebugAgentSelect(); } catch (e) {}
@@ -329,7 +323,7 @@ async function loadAgentsFromValorantApi() {
     });
 
     await Promise.all(loads);
-    await preloadAgentSoundVariants(fetched);
+    // Skip preloading sounds for fetched agents; they will be loaded on demand.
 
     // Replace agents and redraw
     agents = fetched;

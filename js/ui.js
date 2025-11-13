@@ -240,14 +240,43 @@ function populatePerAgentSettings() {
 
     const summary = document.createElement('summary');
     summary.className = 'agent-sounds-summary';
-    const count = Array.isArray(agent.winSounds) ? agent.winSounds.length : 0;
-    summary.textContent = count ? `Voice lines (${count})` : 'Voice lines';
+    // Prefer manifest-based count (does not trigger network), fallback to known list if >1
+    const manifest = (typeof window !== 'undefined') ? window.AGENT_SOUND_MANIFEST : null;
+    const slug = (agent?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    let count = 0;
+    if (manifest && slug && Array.isArray(manifest[slug])) {
+      count = manifest[slug].length | 0;
+    } else {
+      const known = Array.isArray(agent.winSounds) ? agent.winSounds.length : 0;
+      if (known > 1) count = known;
+    }
+    summary.textContent = count > 0 ? `Voice lines (${count})` : 'Voice lines';
     details.appendChild(summary);
 
     const soundList = document.createElement('div');
     soundList.className = 'agent-sound-list';
     renderAgentSoundRows(agent, soundList);
     details.appendChild(soundList);
+
+    // Lazy-load additional sound variants on first open
+    let loadedVariants = !!agent._soundsBuilt || (Array.isArray(agent.winSounds) && agent.winSounds.length > 1);
+    details.addEventListener('toggle', async () => {
+      if (!details.open) return;
+      if (loadedVariants) return;
+      loadedVariants = true;
+      try {
+        if (typeof window.buildAgentSoundList === 'function') {
+          await window.buildAgentSoundList(agent);
+          // Re-render with any discovered sounds
+          soundList.innerHTML = '';
+          renderAgentSoundRows(agent, soundList);
+          const newCount = Array.isArray(agent.winSounds) ? agent.winSounds.length : 0;
+          summary.textContent = newCount ? `Voice lines (${newCount})` : 'Voice lines';
+        }
+      } catch (e) {
+        // ignore
+      }
+    });
 
     block.appendChild(details);
 
