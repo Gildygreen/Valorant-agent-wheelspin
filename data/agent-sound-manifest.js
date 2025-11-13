@@ -6,27 +6,27 @@ window.AGENT_SOUND_MANIFEST = {
     { "label": "\"Five on five, papapapapa, we gon clear them all.\"", "path": "assets/sounds/astra4.mp3" }
   ],
   "breach": [
-    { "label": "Default: \"Hell of a job\"", "path": "assets/sounds/breach.mp3" },
-    { "label": "\"Tack tack\"", "path": "assets/sounds/breach2.mp3" },
+    { "label": "Default: \"Hell of a job.\"", "path": "assets/sounds/breach.mp3" },
+    { "label": "\"Tack tack.\"", "path": "assets/sounds/breach2.mp3" },
     { "label": "\"Guns in my face? Just another Tuesday.\"", "path": "assets/sounds/breach3.mp3" },
     { "label": "\"You clowns brought me along so we're doing this my way - quick and violent.\"", "path": "assets/sounds/breach4.mp3" }
   ],
   "brimstone": [
     { "label": "Default: \"Who's the old dog now?\"", "path": "assets/sounds/brimstone.mp3" },
-    { "label": "\"Toasted\"", "path": "assets/sounds/brimstone2.mp3" },
+    { "label": "\"Toasted.\"", "path": "assets/sounds/brimstone2.mp3" },
     { "label": "\"I can't close the settings manual on my bracer, how do I- oh, got it.\"", "path": "assets/sounds/brimstone3.mp3" },
-    { "label": "\"Ok, kids, we got company. Pretend you all get along.\"", "path": "assets/sounds/brimstone4.mp3" },
+    { "label": "\"Ok, kids, we've got company. Pretend you all get along.\"", "path": "assets/sounds/brimstone4.mp3" },
     { "label": "\"I'll never retire.\"", "path": "assets/sounds/brimstone5.mp3" }
   ],
   "chamber": [
     { "label": "Default: \"They are so dead!\"", "path": "assets/sounds/chamber.mp3" },
-    { "label": "\"Excusez-moi\"", "path": "assets/sounds/chamber2.mp3" },
+    { "label": "\"Excusez-moi!\"", "path": "assets/sounds/chamber2.mp3" },
     { "label": "\"Ok, last looks. You all look wonderful. Me? I always look good. We are ready.\"", "path": "assets/sounds/chamber3.mp3" },
     { "label": "\"Viper, you must let me take you out sometime. Dinner, dancing. I know the perfect place.\"", "path": "assets/sounds/chamber4.mp3" }
   ],
   "clove": [
-    { "label": "Default: \No peeking.\"", "path": "assets/sounds/clove.mp3" },
-    { "label": "\"Refreshing\"", "path": "assets/sounds/clove2.mp3" },
+    { "label": "Default: \"No peeking.\"", "path": "assets/sounds/clove.mp3" },
+    { "label": "\"Refreshing!\"", "path": "assets/sounds/clove2.mp3" },
     { "label": "\"Wait, wait, wait, I've a rock in my shoe... Nice, free rock.\"", "path": "assets/sounds/clove3.mp3" },
     { "label": "\"Oh, shite, I lost my pet rock.\"", "path": "assets/sounds/clove4.mp3" },
     { "label": "\"Who's ready to die for this mission? I am, but you know, I'm cheating.\"", "path": "assets/sounds/clove5.mp3" },
@@ -41,7 +41,7 @@ window.AGENT_SOUND_MANIFEST = {
     { "label": "\"No more running, gal.\"", "path": "assets/sounds/cypher5.mp3" }
   ],
   "deadlock": [
-    { "label": "Default:\"Å fy faen! Well done!\"", "path": "assets/sounds/deadlock.mp3" },
+    { "label": "Default: \"Å fy faen! Well done!\"", "path": "assets/sounds/deadlock.mp3" },
     { "label": "\"Midt i smørøyet.\"", "path": "assets/sounds/deadlock2.mp3" },
     { "label": "\"Dra til helvete.\"", "path": "assets/sounds/deadlock3.mp3" },
     { "label": "\"Take a nap.\"", "path": "assets/sounds/deadlock4.mp3" },
@@ -50,7 +50,7 @@ window.AGENT_SOUND_MANIFEST = {
   "fade": [
     { "label": "Default: \"Ok, time for coffee, my treat.\"", "path": "assets/sounds/fade.mp3" },
     { "label": "\"Teşekkürler. Thank you.\"", "path": "assets/sounds/fade2.mp3" },
-    { "label": "\"Don't worry, everyone. I won't them what scares you. Promise.\"", "path": "assets/sounds/fade3.mp3" },
+    { "label": "\"Don't worry, everyone. I won't tell them what scares you. Promise.\"", "path": "assets/sounds/fade3.mp3" },
     { "label": "\"Missed me.\"", "path": "assets/sounds/fade4.mp3" },
     { "label": "\"Now your nightmare is over.\"", "path": "assets/sounds/fade5.mp3" }
   ],
@@ -62,7 +62,7 @@ window.AGENT_SOUND_MANIFEST = {
     { "label": "\"This is my house, baby. My house.\"", "path": "assets/sounds/gekko5.mp3" },
   ],
   "harbor": [
-    { "label": "Default:\"After this, the first round of chai is on me.\"", "path": "assets/sounds/harbor.mp3" },
+    { "label": "Default: \"After this, the first round of chai is on me.\"", "path": "assets/sounds/harbor.mp3" },
     { "label": "*laughs* \"Loosen up. It's only life or death.\"", "path": "assets/sounds/harbor2.mp3" },
     { "label": "*laughs* \"Amateurs.\"", "path": "assets/sounds/harbor3.mp3" },
     { "label": "\"See that older building? How the roof follows the silver ratio.\" *laughs* \"Who said maths wasn't beautiful?\"", "path": "assets/sounds/harbor4.mp3" },
@@ -70,9 +70,9 @@ window.AGENT_SOUND_MANIFEST = {
   ],
   "iso": [
     { "label": "Default: \"I didn't bring a snack... Did anyone bring a snack?\"", "path": "assets/sounds/iso.mp3" },
-    { "label": "*sigh* \"I was sweating.\"", "path": "assets/sounds/iso2.mp3" },
+    { "label": "*Sigh* \"I was sweating.\"", "path": "assets/sounds/iso2.mp3" },
     { "label": "\"One minute, finding a playlist.\" *hums* \"Ah, perfect.\"", "path": "assets/sounds/iso3.mp3" },
-    { "label": "\"Five on five? I prefer one on one, but don't worry, this is good too.\"", "path": "assets/sounds/iso4.mp3" },
+    { "label": "\"Five on five? I prefer one on one. But don't worry, this is good too.\"", "path": "assets/sounds/iso4.mp3" },
     { "label": "\"I have time for a selfie before we leave, right? I'll be fast.\"", "path": "assets/sounds/iso5.mp3" }
   ],
   "jett": [
@@ -91,7 +91,7 @@ window.AGENT_SOUND_MANIFEST = {
   "killjoy": [
     { "label": "Default: \"Let's make this extraction quick. After this, I'm going clubbing five time zones away, and a girl needs a moment to change.\"", "path": "assets/sounds/killjoy.mp3" },
     { "label": "\"Don't stress if I die, it was great knowing you all. Also, delete my hard drive.\"", "path": "assets/sounds/killjoy2.mp3" },
-    { "label": "\"Swarm grenades, check. Killer robots, check. Oh, hah, they're only killer when I say so.\"", "path": "assets/sounds/killjoy3.mp3" },
+    { "label": "\"Swarm grenades, check. Killer robots, check. Oh, hah, don't worry. They're only killer when I say so.\"", "path": "assets/sounds/killjoy3.mp3" },
     { "label": "\"Oh, oh, what if I sabotage their defuser to speed up the timer instead. Oh man, how funny would that be?\"", "path": "assets/sounds/killjoy4.mp3" },
     { "label": "\"Stealing our radianite is one thing, but I swear if they touch my coffee mug collection, I will erase them from existence.\"", "path": "assets/sounds/killjoy5.mp3" }
   ],
@@ -103,10 +103,11 @@ window.AGENT_SOUND_MANIFEST = {
   ],
   "omen": [
     { "label": "Default: \"Boo.\"", "path": "assets/sounds/omen.mp3" },
-    { "label": "\"Out of my way.\"", "path": "assets/sounds/omen2.mp3" },
+    { "label": "*Grunts*", "path": "assets/sounds/omen2.mp3" },
+    { "label": "\"Out of my way.\"", "path": "assets/sounds/omen3.mp3" },
     { "label": "\"You thought you could escape my nightmare?\"", "path": "assets/sounds/omen4.mp3" },
     { "label": "\"Kick them when they're down.\"", "path": "assets/sounds/omen5.mp3" },
-    { "label": "\"Sad fools stand in our way.\"", "path": "assets/sounds/omen6.mp3" },
+    { "label": "\"Sad fools standing in our way.\"", "path": "assets/sounds/omen6.mp3" },
   ],
   "phoenix": [
     { "label": "Default: \"Yes, yes, it's me. Autographs if we survive, yeah?\"", "path": "assets/sounds/phoenix.mp3" },
@@ -176,7 +177,7 @@ window.AGENT_SOUND_MANIFEST = {
   ],
   "vyse": [
     { "label": "Default: \"Sorry, little guy.\"", "path": "assets/sounds/vyse.mp3" },
-    { "label": "\"I deserve this. We...deserve this. \"", "path": "assets/sounds/vyse2.mp3" },
+    { "label": "\"I deserve this. Uh, we...deserve this. \"", "path": "assets/sounds/vyse2.mp3" },
     { "label": "\"Has been.\"", "path": "assets/sounds/vyse3.mp3" },
     { "label": "\"Good, aren't I?\"", "path": "assets/sounds/vyse4.mp3" },
     { "label": "\"Who do you think you are?\"", "path": "assets/sounds/vyse5.mp3" },
@@ -194,7 +195,7 @@ window.AGENT_SOUND_MANIFEST = {
   ],
   "yoru": [
     { "label": "Default: \"Class dismissed.\"", "path": "assets/sounds/yoru.mp3" },
-    { "label": "\"So much fuzz over nothing. Someone get me a bat, I'll finish this.\"", "path": "assets/sounds/yoru2.mp3" },
+    { "label": "\"So much fuss over nothing. Someone get me a bat, I'll finish this.\"", "path": "assets/sounds/yoru2.mp3" },
     { "label": "\"I'm leaving now. See you at the next apocalypse.\"", "path": "assets/sounds/yoru3.mp3" },
     { "label": "\"Embarrassing.\"", "path": "assets/sounds/yoru4.mp3" },
     { "label": "\"うるせんだよ\"", "path": "assets/sounds/yoru5.mp3" },
