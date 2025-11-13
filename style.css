@@ -134,6 +134,7 @@ canvas {
 #winnerModal {
   background: transparent; /* avoid greying out background for OBS transparency */
   backdrop-filter: none;   /* do not blur entire page */
+  z-index: 1000;           /* ensure winner modal sits above others */
 }
 
 #winnerModal .modal-content {
@@ -540,6 +541,7 @@ canvas {
 
 /* Inputs inside settings modal */
 .settings-modal input[type="text"],
+.settings-modal input[type="number"],
 .settings-modal select,
 .settings-modal textarea {
   width: 100%;
@@ -685,6 +687,7 @@ canvas {
   cursor: pointer;
   color: #fff;
 }
+.teams-btn { right: 64px; }
 
 /* Modal styles */
 .modal {
@@ -697,6 +700,7 @@ canvas {
   align-items: center;
   justify-content: center;
   background: rgba(0,0,0,0.6);
+  z-index: 900;
 }
 
 .modal[aria-hidden="false"] {
@@ -710,6 +714,53 @@ canvas {
   border-radius: 8px;
   width: 90%;
   max-width: 600px;
+}
+
+/* Team modal layout */
+.team-form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+.team-player-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 8px;
+}
+.team-actions {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto auto;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+}
+.team-comp {
+  display: grid;
+  grid-template-columns: auto 80px;
+  gap: 6px 10px;
+  align-items: center;
+}
+.team-results {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+.team-result-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  align-items: center;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.team-result-row img {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  object-fit: cover;
 }
 
 /* Ensure modal content stays inside the viewport and becomes scrollable when needed */

@@ -17,6 +17,25 @@ const roleButtons = [
   { id: 'roleBtnSentinel', role: 'Sentinel' },
 ];
 
+// Teams modal UI elements
+const teamsBtnEl = document.getElementById('teamsBtn');
+const teamsModalEl = document.getElementById('teamsModal');
+const closeTeamsEl = document.getElementById('closeTeams');
+const teamNameInput = document.getElementById('teamNameInput');
+const teamPlayersContainer = document.getElementById('teamPlayers');
+const teamRandomizeRoles = document.getElementById('teamRandomizeRoles');
+const savedTeamsSelect = document.getElementById('savedTeamsSelect');
+const teamNewBtn = document.getElementById('teamNewBtn');
+const teamSaveBtn = document.getElementById('teamSaveBtn');
+const teamDeleteBtn = document.getElementById('teamDeleteBtn');
+const teamRollBtn = document.getElementById('teamRollBtn');
+const teamResults = document.getElementById('teamResults');
+// Composition inputs
+const compController = document.getElementById('compController');
+const compDuelist = document.getElementById('compDuelist');
+const compInitiator = document.getElementById('compInitiator');
+const compSentinel = document.getElementById('compSentinel');
+
 if (shareWinnerBtn) {
   shareWinnerBtn.disabled = true;
   shareWinnerBtn.addEventListener('click', async () => {
@@ -183,6 +202,324 @@ wireRoleButtons();
 // Allow data.js to refresh icons after API load
 window.refreshRoleFilterIcons = updateRoleButtonIcons;
 
+// Teams: storage + roll helpers
+const TEAMS_KEY = 'savedTeamsList';
+function loadTeams() {
+  try {
+    const raw = localStorage.getItem(TEAMS_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) { return []; }
+}
+function saveTeams(list) {
+  try { localStorage.setItem(TEAMS_KEY, JSON.stringify(list || [])); } catch (e) {}
+}
+function renderSavedTeams() {
+  if (!savedTeamsSelect) return;
+  const teams = loadTeams();
+  savedTeamsSelect.innerHTML = '';
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = 'Saved teams';
+  savedTeamsSelect.appendChild(placeholder);
+  teams.forEach((t, idx) => {
+    const opt = document.createElement('option');
+    opt.value = String(idx);
+    opt.textContent = t.name || `Team ${idx+1}`;
+    savedTeamsSelect.appendChild(opt);
+  });
+}
+function getFormPlayers() {
+  const rows = teamPlayersContainer ? Array.from(teamPlayersContainer.querySelectorAll('.team-player-row')) : [];
+  return rows.map((row) => {
+    const name = (row.querySelector('.team-player-name')?.value || '').trim();
+    const role = (row.querySelector('.team-player-role')?.value || '').trim();
+    return { name, role };
+  });
+}
+function setFormPlayers(players = []) {
+  const rows = teamPlayersContainer ? Array.from(teamPlayersContainer.querySelectorAll('.team-player-row')) : [];
+  for (let i = 0; i < rows.length; i++) {
+    const p = players[i] || { name: '', role: '' };
+    const nameEl = rows[i].querySelector('.team-player-name');
+    const roleEl = rows[i].querySelector('.team-player-role');
+    if (nameEl) nameEl.value = p.name || '';
+    if (roleEl) roleEl.value = p.role || '';
+  }
+}
+function clearTeamForm() {
+  if (teamNameInput) teamNameInput.value = '';
+  setFormPlayers([{},{},{},{},{}]);
+  if (teamRandomizeRoles) teamRandomizeRoles.checked = false;
+  if (teamResults) teamResults.innerHTML = '';
+  if (savedTeamsSelect) savedTeamsSelect.value = '';
+  setRoleComposition({ Controller: 0, Duelist: 0, Initiator: 0, Sentinel: 0 });
+}
+function collectTeamFromForm() {
+  return {
+    name: (teamNameInput?.value || '').trim() || 'Team',
+    players: getFormPlayers(),
+    comp: getRoleComposition(),
+  };
+}
+function populateFormFromTeam(team) {
+  if (!team) return;
+  if (teamNameInput) teamNameInput.value = team.name || '';
+  setFormPlayers(team.players || []);
+  setRoleComposition(team.comp || { Controller: 0, Duelist: 0, Initiator: 0, Sentinel: 0 });
+}
+
+if (savedTeamsSelect) {
+  renderSavedTeams();
+  savedTeamsSelect.addEventListener('change', () => {
+    const idx = parseInt(savedTeamsSelect.value, 10);
+    const teams = loadTeams();
+    if (!isNaN(idx) && teams[idx]) {
+      populateFormFromTeam(teams[idx]);
+    }
+  });
+}
+if (teamNewBtn) {
+  teamNewBtn.addEventListener('click', clearTeamForm);
+}
+if (teamSaveBtn) {
+  teamSaveBtn.addEventListener('click', () => {
+    const teams = loadTeams();
+    const current = collectTeamFromForm();
+    // if a saved team is selected, overwrite; otherwise push new
+    const idx = parseInt(savedTeamsSelect?.value || '', 10);
+    if (!isNaN(idx) && teams[idx]) teams[idx] = current; else teams.push(current);
+    saveTeams(teams);
+    renderSavedTeams();
+  });
+}
+if (teamDeleteBtn) {
+  teamDeleteBtn.addEventListener('click', () => {
+    const idx = parseInt(savedTeamsSelect?.value || '', 10);
+    const teams = loadTeams();
+    if (!isNaN(idx) && teams[idx]) {
+      teams.splice(idx, 1);
+      saveTeams(teams);
+      renderSavedTeams();
+      clearTeamForm();
+    }
+  });
+}
+
+function agentsByRole(role) {
+  try {
+    const list = (typeof allAgents !== 'undefined' && Array.isArray(allAgents)) ? allAgents : agents;
+    return (list || []).filter(a => (a.role || '').toLowerCase() === (role || '').toLowerCase());
+  } catch (e) { return []; }
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function rollTeamAssignments(team, randomizeRolesFlag) {
+  const players = (team?.players || []).map((p, i) => ({ idx: i, name: p.name || `Player ${i+1}`, role: p.role || '' }));
+  if (!players.length) return [];
+  let roles = players.map(p => p.role).filter(Boolean);
+  if (randomizeRolesFlag) {
+    roles = shuffle(roles.slice());
+    // reassign shuffled roles to players who had a role specified; others remain blank
+    let r = 0;
+    for (let i = 0; i < players.length; i++) {
+      if (players[i].role) {
+        players[i].role = roles[r++] || players[i].role;
+      }
+    }
+  }
+
+  const assignedAgents = new Set();
+  const results = players.map((p) => {
+    let pool = p.role ? agentsByRole(p.role) : (typeof allAgents !== 'undefined' ? allAgents : agents);
+    pool = pool || [];
+    // prefer an unassigned agent
+    const unpicked = pool.filter(a => !assignedAgents.has((a.name || '').toLowerCase()));
+    const pickFrom = unpicked.length ? unpicked : pool;
+    let chosen = null;
+    if (pickFrom.length) {
+      chosen = pickFrom[Math.floor(Math.random() * pickFrom.length)];
+      assignedAgents.add((chosen.name || '').toLowerCase());
+    }
+    return { player: p.name, role: p.role || 'Any', agent: chosen?.name || 'Random', img: chosen?.img || '' };
+  });
+  return results;
+}
+
+function renderTeamResults(assignments) {
+  if (!teamResults) return;
+  teamResults.innerHTML = '';
+  if (!assignments || !assignments.length) return;
+  assignments.forEach((r) => {
+    const row = document.createElement('div');
+    row.className = 'team-result-row';
+    const p = document.createElement('div');
+    p.textContent = r.player || 'Player';
+    const role = document.createElement('div');
+    role.textContent = r.role;
+    const agent = document.createElement('div');
+    if (r.img) {
+      const img = document.createElement('img');
+      img.src = r.img; img.alt = r.agent; img.title = r.agent;
+      agent.appendChild(img);
+      const span = document.createElement('span');
+      span.style.marginLeft = '8px';
+      span.textContent = r.agent;
+      agent.appendChild(span);
+    } else {
+      agent.textContent = r.agent;
+    }
+    row.appendChild(p);
+    row.appendChild(role);
+    row.appendChild(agent);
+    teamResults.appendChild(row);
+  });
+}
+
+if (teamRollBtn) {
+  teamRollBtn.addEventListener('click', async () => {
+    const team = collectTeamFromForm();
+    const randomize = !!(teamRandomizeRoles && teamRandomizeRoles.checked);
+    await animatedTeamRoll(team, randomize);
+  });
+}
+
+function clampInt(n, min, max) {
+  n = parseInt(n, 10); if (isNaN(n)) n = 0; return Math.max(min, Math.min(max, n));
+}
+
+function getRoleComposition() {
+  const c = clampInt(compController?.value, 0, 5);
+  const d = clampInt(compDuelist?.value, 0, 5);
+  const i = clampInt(compInitiator?.value, 0, 5);
+  const s = clampInt(compSentinel?.value, 0, 5);
+  return { Controller: c, Duelist: d, Initiator: i, Sentinel: s };
+}
+
+function setRoleComposition(comp) {
+  try { if (compController) compController.value = clampInt(comp?.Controller, 0, 5); } catch (e) {}
+  try { if (compDuelist) compDuelist.value = clampInt(comp?.Duelist, 0, 5); } catch (e) {}
+  try { if (compInitiator) compInitiator.value = clampInt(comp?.Initiator, 0, 5); } catch (e) {}
+  try { if (compSentinel) compSentinel.value = clampInt(comp?.Sentinel, 0, 5); } catch (e) {}
+}
+
+// Animated team roll using the main spinning wheel
+async function animatedTeamRoll(team, randomizeRolesFlag) {
+  try {
+    // Prepare players list and optional role randomization
+    const players = (team?.players || []).map((p, i) => ({ idx: i, name: p.name || `Player ${i+1}`, role: p.role || '' }));
+    if (!players.length) return;
+    if (teamResults) teamResults.innerHTML = '';
+    // Apply team composition if provided; otherwise optional shuffle of user-selected roles
+    const comp = team?.comp || { Controller: 0, Duelist: 0, Initiator: 0, Sentinel: 0 };
+    const compSum = ['Controller','Duelist','Initiator','Sentinel']
+      .map((k) => parseInt(comp?.[k] || 0, 10) || 0)
+      .reduce((a,b)=>a+b,0);
+    if (compSum > 0) {
+      const teamSize = players.length;
+      const desired = [];
+      const pushMany = (role, count) => { for (let n=0; n<Math.min(count, teamSize - desired.length); n++) desired.push(role); };
+      pushMany('Controller', parseInt(comp.Controller||0,10)||0);
+      pushMany('Duelist', parseInt(comp.Duelist||0,10)||0);
+      pushMany('Initiator', parseInt(comp.Initiator||0,10)||0);
+      pushMany('Sentinel', parseInt(comp.Sentinel||0,10)||0);
+      while (desired.length < teamSize) desired.push('Any');
+      const roles = shuffle(desired);
+      for (let i = 0; i < players.length; i++) players[i].role = roles[i];
+    } else if (randomizeRolesFlag) {
+      let roles = players.map(p => p.role).filter(Boolean);
+      roles = shuffle(roles.slice());
+      let r = 0;
+      for (let i = 0; i < players.length; i++) {
+        if (players[i].role) players[i].role = roles[r++] || players[i].role;
+      }
+    }
+
+    // Snapshot state to restore later
+    const prevAgents = agents.slice();
+    const prevPlayerName = typeof playerName === 'string' ? playerName : '';
+    const assigned = new Set();
+    // Disable roll button during sequence
+    const prevDisabled = !!teamRollBtn.disabled;
+    teamRollBtn.disabled = true;
+
+    const resultsAccum = [];
+    for (const p of players) {
+      // Build pool: agents of role (if specified), excluding already assigned
+      let pool = (p.role ? agentsByRole(p.role) : (typeof allAgents !== 'undefined' ? allAgents : agents)) || [];
+      if (!pool.length) pool = (typeof allAgents !== 'undefined' ? allAgents : agents) || [];
+      if (assigned.size) {
+        pool = pool.filter(a => !assigned.has((a.name || '').toLowerCase()));
+      }
+      if (!pool.length) pool = prevAgents.slice();
+
+      // Apply pool to wheel and set temporary name for modal
+      agents = pool.slice();
+      try { prevRel = null; prevIndex = null; } catch (e) {}
+      try { drawWheel(); } catch (e) {}
+      const oldName = typeof playerName === 'string' ? playerName : '';
+      playerName = p.name;
+
+      // Trigger a spin and wait for selection
+      await ensureAudioReady();
+      spinWheel();
+      const chosen = await waitForWinnerAndAutoClose();
+
+      // Record assignment and render incrementally
+      if (chosen && chosen.name) assigned.add((chosen.name || '').toLowerCase());
+      resultsAccum.push({ player: p.name, role: p.role || 'Any', agent: chosen?.name || 'Random', img: chosen?.img || '' });
+      renderTeamResults(resultsAccum);
+
+      // Restore playerName default for next iterations (will be reset again per player)
+      playerName = oldName;
+    }
+
+    // Restore wheel state
+    agents = prevAgents.slice();
+    try { drawWheel(); } catch (e) {}
+    playerName = prevPlayerName;
+    teamRollBtn.disabled = prevDisabled;
+  } catch (e) {
+    try { teamRollBtn.disabled = false; } catch (err) {}
+  }
+}
+
+function ensureAudioReady() {
+  try {
+    if (audioCtx && audioCtx.state === 'suspended') return audioCtx.resume();
+  } catch (e) {}
+  return Promise.resolve();
+}
+
+function waitForWinnerAndAutoClose(timeoutMs = 20000, displayMs = 1200) {
+  return new Promise((resolve) => {
+    const start = Date.now();
+    const poll = () => {
+      if (lastWinnerAgent && winnerModalOpen) {
+        const chosen = lastWinnerAgent;
+        setTimeout(() => {
+          try { closeWinnerModal({ restoreFocus: false }); } catch (e) {}
+          resolve(chosen);
+        }, Math.max(400, displayMs));
+        return;
+      }
+      if (Date.now() - start > timeoutMs) {
+        resolve(lastWinnerAgent || null);
+        return;
+      }
+      requestAnimationFrame(poll);
+    };
+    poll();
+  });
+}
+
 // Pointer arrow color picker
 if (pointerColorInput) {
   try {
@@ -247,6 +584,24 @@ if (settingsBtn && settingsModal && closeSettings) {
   });
 }
 
+// Teams modal open/close
+if (teamsBtnEl && teamsModalEl && closeTeamsEl) {
+  teamsBtnEl.addEventListener('click', () => {
+    teamsModalEl.setAttribute('aria-hidden', 'false');
+    try { if (typeof refreshModalOpenClass === 'function') refreshModalOpenClass(); } catch (e) {}
+  });
+  closeTeamsEl.addEventListener('click', () => {
+    teamsModalEl.setAttribute('aria-hidden', 'true');
+    try { if (typeof refreshModalOpenClass === 'function') refreshModalOpenClass(); } catch (e) {}
+  });
+  teamsModalEl.addEventListener('click', (e) => {
+    if (e.target === teamsModalEl) {
+      teamsModalEl.setAttribute('aria-hidden', 'true');
+      try { if (typeof refreshModalOpenClass === 'function') refreshModalOpenClass(); } catch (err) {}
+    }
+  });
+}
+
 // Winner modal close handlers
 if (winnerModal && closeWinner) {
   closeWinner.addEventListener('click', () => {
@@ -285,6 +640,11 @@ document.addEventListener('keydown', (e) => {
     const settingsOpen = settingsModal && settingsModal.getAttribute('aria-hidden') === 'false';
     if (settingsOpen) {
       settingsModal.setAttribute('aria-hidden', 'true');
+      handled = true;
+    }
+    const teamsOpen = teamsModalEl && teamsModalEl.getAttribute('aria-hidden') === 'false';
+    if (teamsOpen) {
+      teamsModalEl.setAttribute('aria-hidden', 'true');
       handled = true;
     }
     try { if (typeof refreshModalOpenClass === 'function') refreshModalOpenClass(); } catch (e) {}
