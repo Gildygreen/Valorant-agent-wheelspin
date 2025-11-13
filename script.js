@@ -191,8 +191,8 @@ let drumEnabled = JSON.parse(localStorage.getItem('drumEnabled')) ?? true;
 let drumVolume = parseFloat(localStorage.getItem('drumVolume'));
 if (isNaN(drumVolume)) drumVolume = 0.9;
 let drumLeadMs = parseInt(localStorage.getItem('drumLeadMs'));
-if (isNaN(drumLeadMs)) drumLeadMs = 1200; // how long before selection to start drumroll
-let drumScheduled = false;
+if (isNaN(drumLeadMs)) drumLeadMs = 2300; // how long before selection to start drumroll
+let drumScheduled = true;
 let drumSources = []; // active AudioBufferSourceNodes or timeouts for fallback
 
 // Center icon (stationary, non-spinning)
