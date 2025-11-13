@@ -1,16 +1,10 @@
 const AGENT_SOUND_PREFS_KEY = 'agentSoundPrefs';
-const agentOrderMap = new Map();
-if (Array.isArray(agents)) {
-  agents.forEach((agent, index) => {
-    const key = (agent?.name || '').toLowerCase();
-    if (key) agentOrderMap.set(key, index);
-  });
-}
 const MAX_AGENT_SOUND_VARIANTS = 8;
 const agentSoundPrefs = loadAgentSoundPrefs();
 const agentSoundExistenceCache = new Map();
 const soundManifest = typeof window !== 'undefined' ? (window.AGENT_SOUND_MANIFEST || null) : null;
 const isFileProtocol = typeof window !== 'undefined' && window.location && window.location.protocol === 'file:';
+const agentOrderMap = new Map();
 
 function loadAgentSoundPrefs() {
   try {
@@ -33,6 +27,68 @@ function normalizedAgentKey(name) {
   return (name || '').toLowerCase();
 }
 
+function slugifyAgentName(name) {
+  return (name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function seedAgentDefaultSounds(list) {
+  if (!Array.isArray(list)) return;
+  list.forEach((agent, index) => {
+    if (!agent) return;
+    const slug = slugifyAgentName(agent.name);
+    agent._soundSlug = slug;
+    if (!agent.winSounds || !agent.winSounds.length) {
+      agent.winSounds = [{
+        label: 'Default',
+        path: `assets/sounds/${slug}.mp3`,
+        isDefault: true,
+        enabled: true,
+      }];
+    }
+    const key = normalizedAgentKey(agent.name);
+    if (!agentOrderMap.has(key)) {
+      agentOrderMap.set(key, index);
+    }
+    ensureAgentHasEnabledSound(agent);
+  });
+}
+
+seedAgentDefaultSounds(agents);
+
+function ensureAgentHasEnabledSound(agent) {
+  if (!agent?.winSounds?.length) return;
+  const enabled = agent.winSounds.filter((s) => s.enabled !== false);
+  if (!enabled.length) {
+    const fallback = agent.winSounds.find((s) => s.isDefault) || agent.winSounds[0];
+    if (fallback) fallback.enabled = true;
+  }
+}
+
+function updateAgentSoundPrefs(agent) {
+  const key = normalizedAgentKey(agent?.name);
+  if (!key || !agent?.winSounds) return;
+  const disabled = agent.winSounds.filter((s) => s.enabled === false).map((s) => s.path);
+  if (disabled.length) agentSoundPrefs[key] = disabled;
+  else delete agentSoundPrefs[key];
+}
+
+function applyRandomizeSoundRules() {
+  if (!Array.isArray(agents)) return;
+  agents.forEach((agent) => {
+    if (!agent?.winSounds) return;
+    if (!randomizeWinSounds) {
+      const defaultSound = agent.winSounds.find((s) => s.isDefault);
+      if (defaultSound) defaultSound.enabled = true;
+    }
+    ensureAgentHasEnabledSound(agent);
+    updateAgentSoundPrefs(agent);
+  });
+  persistAgentSoundPrefs();
+}
+
+window.applyRandomizeSoundRules = applyRandomizeSoundRules;
+applyRandomizeSoundRules();
+
 function isAgentSoundEnabled(agentName, soundPath, isDefault = false) {
   if (!soundPath) return false;
   if (isDefault) return true;
@@ -41,41 +97,35 @@ function isAgentSoundEnabled(agentName, soundPath, isDefault = false) {
 }
 
 function setAgentSoundEnabled(agentName, soundPath, enabled) {
-  if (!agentName || !soundPath) return;
+  if (!agentName || !soundPath) return true;
   const key = normalizedAgentKey(agentName);
   const agent = agents.find((a) => normalizedAgentKey(a.name) === key);
   const sound = agent?.winSounds?.find((s) => s.path === soundPath);
-  if (sound?.isDefault) {
-    if (agentSoundPrefs[key]) {
-      agentSoundPrefs[key] = agentSoundPrefs[key].filter((p) => p !== soundPath);
-      if (!agentSoundPrefs[key].length) delete agentSoundPrefs[key];
-      persistAgentSoundPrefs();
-    }
-    if (sound) sound.enabled = true;
-    return;
+  if (!agent || !sound) return true;
+
+  let desired = !!enabled;
+  if (!randomizeWinSounds && sound.isDefault && desired === false) {
+    desired = true;
   }
-  const list = agentSoundPrefs[key] || [];
-  const idx = list.indexOf(soundPath);
-  if (!enabled) {
-    if (idx === -1) list.push(soundPath);
-    agentSoundPrefs[key] = list;
-  } else if (idx >= 0) {
-    list.splice(idx, 1);
+
+  if (desired === false) {
+    const otherEnabled = agent.winSounds.some((s) => s.path !== soundPath && s.enabled !== false);
+    if (!otherEnabled) desired = true;
   }
-  if (agentSoundPrefs[key] && !agentSoundPrefs[key].length) {
-    delete agentSoundPrefs[key];
-  }
+
+  sound.enabled = desired;
+  ensureAgentHasEnabledSound(agent);
+  updateAgentSoundPrefs(agent);
   persistAgentSoundPrefs();
-  if (sound) {
-    sound.enabled = enabled || sound.isDefault;
-  }
+  return sound.enabled !== false;
 }
 
 function manifestKeyFromAgent(agent) {
-  const basePath = agent?.winSounds?.[0]?.path || '';
-  if (!basePath) return null;
-  const stem = basePath.replace(/^assets\/sounds\//i, '').replace(/\.mp3$/i, '');
-  return stem.replace(/\d+$/g, '').toLowerCase();
+  if (!agent) return null;
+  if (!agent._soundSlug) {
+    agent._soundSlug = slugifyAgentName(agent.name);
+  }
+  return agent._soundSlug || null;
 }
 
 function applyManifestSounds(agent) {
@@ -84,7 +134,10 @@ function applyManifestSounds(agent) {
   if (!key || !soundManifest[key] || !soundManifest[key].length) return false;
   const entries = soundManifest[key];
   const sounds = entries.map((path, idx) => ({
-    label: idx === 0 ? 'Default' : `Option ${idx + 1}`,
+    label: typeof path === 'object'
+      ? (path.label || (idx === 0 ? 'Default' : `Option ${idx + 1}`))
+      : (idx === 0 ? 'Default' : `Option ${idx + 1}`),
+    path: typeof path === 'object' ? path.path : path,
     path,
     isDefault: idx === 0,
     enabled: isAgentSoundEnabled(agent.name, path, idx === 0),
@@ -168,6 +221,7 @@ async function assetExists(url) {
 
 async function buildAgentSoundList(agent) {
   if (applyManifestSounds(agent)) return;
+  seedAgentDefaultSounds([agent]);
   const baseEntry = agent?.winSounds && agent.winSounds[0];
   const basePath = baseEntry?.path;
   if (!basePath) return;
@@ -215,6 +269,7 @@ async function preloadAgentSoundVariants(list = []) {
   } catch (e) {
     console.warn('Agent sound discovery failed', e);
   }
+  try { applyRandomizeSoundRules(); } catch (e) {}
   try { populatePerAgentSettings(); } catch (e) {}
   try { populateDebugAgentSelect(); } catch (e) {}
   try { markWheelAssetsReady(); } catch (e) {}
@@ -234,7 +289,18 @@ async function loadAgentsFromValorantApi() {
         color: '#888888',
         winSounds: [],
       }));
-    fetched.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+    seedAgentDefaultSounds(fetched);
+    fetched.sort((a, b) => {
+      const aKey = normalizedAgentKey(a.name);
+      const bKey = normalizedAgentKey(b.name);
+      const orderA = agentOrderMap.has(aKey) ? agentOrderMap.get(aKey) : Number.MAX_SAFE_INTEGER;
+      const orderB = agentOrderMap.has(bKey) ? agentOrderMap.get(bKey) : Number.MAX_SAFE_INTEGER;
+      if (orderA === orderB) {
+        return (a.name || '').localeCompare(b.name || '');
+      }
+      return orderA - orderB;
+    });
 
     // Preload images; use colors from the local `agents` list when available, otherwise fall back to a generated color
     const loads = fetched.map(async (f) => {
@@ -264,6 +330,7 @@ async function loadAgentsFromValorantApi() {
 
     // Replace agents and redraw
     agents = fetched;
+    applyRandomizeSoundRules();
     // reset pointer-relative tracking so tick detection doesn't fire spuriously
     prevRel = null;
     drawWheel();

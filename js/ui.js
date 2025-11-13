@@ -34,6 +34,10 @@ if (randomizeWinSoundsToggle) {
   randomizeWinSoundsToggle.addEventListener('change', (e) => {
     randomizeWinSounds = e.target.checked;
     localStorage.setItem('randomizeWinSounds', JSON.stringify(randomizeWinSounds));
+    if (typeof applyRandomizeSoundRules === 'function') {
+      applyRandomizeSoundRules();
+    }
+    populatePerAgentSettings();
   });
 }
 
@@ -222,19 +226,18 @@ function renderAgentSoundRows(agent, container) {
     const label = document.createElement('label');
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
-    checkbox.checked = sound.enabled !== false || sound.isDefault;
-    if (sound.isDefault) {
-      checkbox.disabled = true;
-    }
+    checkbox.checked = sound.enabled !== false;
+    const defaultLocked = !randomizeWinSounds && sound.isDefault;
+    checkbox.disabled = defaultLocked;
     checkbox.addEventListener('change', (e) => {
-      if (sound.isDefault) {
-        e.target.checked = true;
-        return;
-      }
       const enabled = !!e.target.checked;
-      sound.enabled = enabled;
       if (typeof setAgentSoundEnabled === 'function') {
-        setAgentSoundEnabled(agent.name, sound.path, enabled);
+        const finalState = setAgentSoundEnabled(agent.name, sound.path, enabled);
+        sound.enabled = finalState;
+        e.target.checked = finalState;
+        if (finalState === false && !randomizeWinSounds && sound.isDefault) {
+          checkbox.disabled = true;
+        }
       }
     });
 
