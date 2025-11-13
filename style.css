@@ -6,6 +6,19 @@ body {
   color: #fff;
   margin: 0;
   padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#appMain {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
 }
 
 /* Title Section */
@@ -29,7 +42,7 @@ body {
 
 /* Canvas (Wheel) */
 canvas {
-  margin-top: 30px;
+  margin-top: 0;
   border-radius: 10px;
   width: 90vw;
   max-width: 800px;
@@ -43,6 +56,9 @@ canvas {
   width: 90vw;
   max-width: 800px;
   margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Marker (pointer) */
@@ -199,6 +215,54 @@ canvas {
   font-size: 0.9rem;
   text-align: center;
   color: var(--winner-muted);
+}
+
+#wheelContainer {
+  position: relative;
+}
+
+#wheelContainer.loading canvas,
+#wheelContainer.loading #wheelMarker {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.wheel-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  transition: opacity 0.35s ease;
+}
+
+.wheel-loading.loading-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-spinner {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 6px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #ff4655;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+.loading-text {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .stacked-setting {

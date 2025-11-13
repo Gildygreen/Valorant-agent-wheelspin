@@ -8,8 +8,12 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <main id="appMain">
   <!-- Canvas for the wheel spinner -->
-  <div id="wheelContainer">
+  <div id="wheelContainer" class="loading">
+    <div id="wheelLoading" class="wheel-loading" role="status" aria-live="polite">
+      <div class="loading-spinner" aria-hidden="true"></div>
+    </div>
     <canvas id="wheelCanvas" width="800" height="800"></canvas>
     <div id="wheelMarker" aria-hidden="true"></div>
   </div>
@@ -102,6 +106,7 @@
     </div>
   </div>
 
+  </main>
   <script src="data/agents.js"></script>
   <script src="data/agent-sound-manifest.js"></script>
   <script src="js/base.js"></script>

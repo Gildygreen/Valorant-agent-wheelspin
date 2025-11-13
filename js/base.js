@@ -21,6 +21,10 @@ const debugPanel = document.getElementById('debugPanel');
 const debugAgentSelect = document.getElementById('debugAgentSelect');
 const debugShowWinnerBtn = document.getElementById('debugShowWinnerBtn');
 const debugHideBtn = document.getElementById('debugHideBtn');
+const wheelContainerEl = document.getElementById('wheelContainer');
+const wheelLoading = document.getElementById('wheelLoading');
+let wheelAssetsReady = false;
+let centerIconReady = false;
 
 // Store user preferences
 let randomizeWinSounds = JSON.parse(localStorage.getItem('randomizeWinSounds')) ?? false;
@@ -101,6 +105,50 @@ const centerIconBorderColor = 'rgba(0, 0, 0, 0.6)';
 const mobileBreakpointPx = 768;
 const centerIconMinDesktopPx = 260;
 const centerIconMinMobilePx = 110;
+
+// Register service worker to cache heavy resources
+(function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  if (window.location.protocol === 'file:') {
+    console.info('Service workers are unavailable on file:// origins; asset caching disabled.');
+    return;
+  }
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch((err) => {
+      console.warn('Service worker registration failed', err);
+    });
+  });
+})();
+
+function hideLoadingOverlay() {
+  if (wheelContainerEl) wheelContainerEl.classList.remove('loading');
+  if (!wheelLoading) return;
+  wheelLoading.classList.add('loading-hidden');
+  setTimeout(() => {
+    if (wheelLoading && wheelLoading.parentElement) {
+      wheelLoading.parentElement.removeChild(wheelLoading);
+    }
+  }, 400);
+}
+
+function checkLoadingComplete() {
+  if (wheelAssetsReady && centerIconReady) {
+    hideLoadingOverlay();
+  }
+}
+
+function markWheelAssetsReady() {
+  wheelAssetsReady = true;
+  checkLoadingComplete();
+}
+
+function markCenterIconReady() {
+  centerIconReady = true;
+  checkLoadingComplete();
+}
+
+window.markWheelAssetsReady = markWheelAssetsReady;
+window.markCenterIconReady = markCenterIconReady;
 
 function isMobileViewport() {
   try {

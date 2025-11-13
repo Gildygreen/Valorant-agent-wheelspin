@@ -210,6 +210,7 @@ async function preloadAgentSoundVariants(list = []) {
   }
   try { populatePerAgentSettings(); } catch (e) {}
   try { populateDebugAgentSelect(); } catch (e) {}
+  try { markWheelAssetsReady(); } catch (e) {}
 })();
 
 // Fetch agents from a public Valorant API and populate agent list/colors
@@ -258,8 +259,10 @@ async function loadAgentsFromValorantApi() {
     drawWheel();
     populatePerAgentSettings();
     populateDebugAgentSelect();
+    try { markWheelAssetsReady(); } catch (e) {}
   } catch (e) {
     console.warn('Failed to load agents from API', e);
+    try { markWheelAssetsReady(); } catch (err) {}
   }
 }
 
