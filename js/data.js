@@ -1,4 +1,11 @@
 const AGENT_SOUND_PREFS_KEY = 'agentSoundPrefs';
+const agentOrderMap = new Map();
+if (Array.isArray(agents)) {
+  agents.forEach((agent, index) => {
+    const key = (agent?.name || '').toLowerCase();
+    if (key) agentOrderMap.set(key, index);
+  });
+}
 const MAX_AGENT_SOUND_VARIANTS = 8;
 const agentSoundPrefs = loadAgentSoundPrefs();
 const agentSoundExistenceCache = new Map();
@@ -219,12 +226,15 @@ async function loadAgentsFromValorantApi() {
     const res = await fetch('https://valorant-api.com/v1/agents');
     const json = await res.json();
     if (!json || !json.data) return;
-    const fetched = json.data.filter(a => a.isPlayableCharacter).map(a => ({
-      name: a.displayName,
-      img: a.displayIcon || a.bustPortrait || '',
-      color: '#888888',
-      winSounds: []
-    }));
+    const fetched = json.data
+      .filter(a => a.isPlayableCharacter)
+      .map(a => ({
+        name: a.displayName,
+        img: a.displayIcon || a.bustPortrait || '',
+        color: '#888888',
+        winSounds: [],
+      }));
+    fetched.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     // Preload images; use colors from the local `agents` list when available, otherwise fall back to a generated color
     const loads = fetched.map(async (f) => {

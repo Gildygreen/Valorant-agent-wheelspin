@@ -129,6 +129,7 @@ function hideLoadingOverlay() {
       wheelLoading.parentElement.removeChild(wheelLoading);
     }
   }, 400);
+  revealLoadingGatedUi();
 }
 
 function checkLoadingComplete() {
@@ -149,6 +150,11 @@ function markCenterIconReady() {
 
 window.markWheelAssetsReady = markWheelAssetsReady;
 window.markCenterIconReady = markCenterIconReady;
+window.revealLoadingGatedUi = function revealLoadingGatedUi() {
+  document.querySelectorAll('.loading-gated').forEach((el) => {
+    el.classList.add('ready');
+  });
+};
 
 function isMobileViewport() {
   try {
