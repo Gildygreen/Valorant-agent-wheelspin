@@ -70,30 +70,27 @@ function drawWheel() {
     ctx.stroke();
     ctx.restore();
 
-    // Add a clipped gloss overlay to make each slice appear shinier
+    // Clipped gloss overlay: darken slightly toward the wheel center for depth
     ctx.save();
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
     ctx.arc(centerX, centerY, radius, angle, angle + arc, false);
     ctx.closePath();
     ctx.clip();
-    const glossInner = radius * 0.3;
-    const glossOuter = radius * 0.9;
     const glossGradient = ctx.createRadialGradient(
-      centerX + Math.cos(midAngle) * glossInner * 0.25,
-      centerY + Math.sin(midAngle) * glossInner * 0.25,
-      glossInner,
-      centerX + Math.cos(midAngle) * glossInner,
-      centerY + Math.sin(midAngle) * glossInner,
-      glossOuter
+      centerX, centerY, 0,
+      centerX, centerY, radius
     );
-    glossGradient.addColorStop(0, 'rgba(255,255,255,0.22)');
-    glossGradient.addColorStop(0.35, 'rgba(255,255,255,0.1)');
-    glossGradient.addColorStop(0.65, 'rgba(255,255,255,0.04)');
-    glossGradient.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.globalCompositeOperation = 'lighter';
+    // Darker near the center, fading outwards
+    glossGradient.addColorStop(0.0, 'rgba(0,0,0,0.16)');
+    glossGradient.addColorStop(0.35, 'rgba(0,0,0,0.10)');
+    glossGradient.addColorStop(0.65, 'rgba(0,0,0,0.04)');
+    glossGradient.addColorStop(1.0, 'rgba(0,0,0,0.0)');
+    const prevOp = ctx.globalCompositeOperation;
+    ctx.globalCompositeOperation = 'multiply';
     ctx.fillStyle = glossGradient;
     ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
+    ctx.globalCompositeOperation = prevOp;
     ctx.restore();
     ctx.restore();
 
@@ -150,9 +147,12 @@ function drawWheel() {
     const baseMidX = (leftX + rightX) / 2;
     const baseMidY = leftY;
     const pointerGradient = ctx.createLinearGradient(tipX, tipY, baseMidX, baseMidY);
-    pointerGradient.addColorStop(0, '#fff7c6');
-    pointerGradient.addColorStop(0.45, '#ffd45c');
-    pointerGradient.addColorStop(1, '#b87300');
+    const selectedPtr = (typeof window !== 'undefined' && window.pointerColor) ? window.pointerColor : '#ffd45c';
+    const lightPtr = shadeColor(selectedPtr, 0.35);
+    const darkPtr = shadeColor(selectedPtr, -0.45);
+    pointerGradient.addColorStop(0, lightPtr);
+    pointerGradient.addColorStop(0.45, selectedPtr);
+    pointerGradient.addColorStop(1, darkPtr);
 
     ctx.beginPath();
     ctx.moveTo(tipX, tipY);

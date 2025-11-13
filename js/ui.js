@@ -7,6 +7,7 @@ const drumrollVolumeLabel = document.getElementById('drumrollVolumeLabel');
 const agentWinVolumeRange = document.getElementById('agentWinVolumeRange');
 const agentWinVolumeLabel = document.getElementById('agentVolumeLabel');
 const tickVolumeLabel = document.getElementById('tickVolumeLabel');
+const pointerColorInput = document.getElementById('pointerColor');
 
 if (shareWinnerBtn) {
   shareWinnerBtn.disabled = true;
@@ -98,6 +99,23 @@ if (agentWinVolumeRange) {
     agentWinVolume = isNaN(v) ? 0.5 : v;
     localStorage.setItem('agentWinVolume', String(agentWinVolume));
     if (agentWinVolumeLabel) agentWinVolumeLabel.textContent = Math.round(agentWinVolume * 100) + '%';
+  });
+}
+
+// Pointer arrow color picker
+if (pointerColorInput) {
+  try {
+    const initial = (typeof window !== 'undefined' && window.pointerColor) ? window.pointerColor : '#ffd45c';
+    pointerColorInput.value = normalizeHex(initial) || '#ffd45c';
+  } catch (e) {}
+  pointerColorInput.addEventListener('input', (e) => {
+    try {
+      const val = normalizeHex(e.target.value);
+      if (!val) return;
+      window.pointerColor = val;
+      try { localStorage.setItem('pointerColor', val); } catch (err) {}
+      try { drawWheel(); } catch (err) {}
+    } catch (err) {}
   });
 }
 

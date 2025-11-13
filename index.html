@@ -51,55 +51,57 @@
       <h3>Spin & Audio Settings</h3>
 
       <div class="settings-layout">
-        <section class="settings-section">
-          <h4>Agent Win Audio</h4>
-          <p class="settings-subtitle">Control how voice lines behave when an agent wins.</p>
-          <label class="toggle-label">
-            <input type="checkbox" id="randomizeWinSoundsToggle">
-            Randomize available voice lines
-          </label>
-          <div class="setting-row slider-row">
+        <section class="settings-section" id="audioSection">
+          <h4>Audio</h4>
+          <p class="settings-subtitle">Configure win lines, ticks and drumroll in one place.</p>
+
+          <div class="setting-row">
+            <label class="toggle-label">
+              <input type="checkbox" id="randomizeWinSoundsToggle">
+              Randomize available voice lines
+            </label>
             <div class="slider-label">
               <span>Agent win volume</span>
               <strong id="agentVolumeLabel">50%</strong>
             </div>
             <input id="agentWinVolumeRange" type="range" min="0" max="1" step="0.01" value="0.5" />
           </div>
-        </section>
 
-        <section class="settings-section">
-          <h4>Tick Sound</h4>
-          <p class="settings-subtitle">Subtle clicks that play while the wheel spins.</p>
-          <label class="toggle-label">
-            <input type="checkbox" id="tickEnabledToggle">
-            Enable tick sound
-          </label>
-          <div class="setting-row slider-row">
+          <div class="setting-row">
             <div class="slider-label">
               <span>Tick volume</span>
               <strong id="tickVolumeLabel">50%</strong>
             </div>
             <input id="tickVolumeRange" type="range" min="0" max="1" step="0.01" value="0.5" />
+            <label class="toggle-label">
+              <input type="checkbox" id="tickEnabledToggle">
+              Enable tick sound
+            </label>
           </div>
-        </section>
 
-        <section class="settings-section">
-          <h4>Drumroll</h4>
-          <p class="settings-subtitle">Add a dramatic drum build-up before the winner reveal.</p>
-          <label class="toggle-label">
-            <input type="checkbox" id="drumrollEnabledToggle">
-            Enable drumroll effect
-          </label>
-          <div class="setting-row slider-row">
+          <div class="setting-row">
             <div class="slider-label">
               <span>Drumroll volume</span>
               <strong id="drumrollVolumeLabel">50%</strong>
             </div>
             <input id="drumrollVolumeRange" type="range" min="0" max="1" step="0.01" value="0.5" />
+            <label class="toggle-label">
+              <input type="checkbox" id="drumrollEnabledToggle">
+              Enable drumroll effect
+            </label>
           </div>
         </section>
 
-        <section class="settings-section wide" id="perAgentSection">
+        <section class="settings-section" id="audioSection">
+          <h4>Pointer settings</h4>
+
+          <div class="setting-row">
+            <label class="slider-label" for="pointerColor">Pointer color</label>
+            <input type="color" id="pointerColor" value="#ffd45c" />
+          </div>
+        </section>
+
+        <section class="settings-section" id="perAgentSection">
           <h4>Per-Agent Voice Lines</h4>
           <p class="settings-subtitle">Enable, disable, or preview individual voice lines.</p>
           <div id="perAgentSettings">
