@@ -3,7 +3,7 @@ window.AGENT_SOUND_MANIFEST = {
     { "label": "Default:  *humming*", "path": "assets/sounds/astra.mp3" },
     { "label": "\"Boom\" *laughs*", "path": "assets/sounds/astra2.mp3" },
     { "label": "\"Waddap suckers, you ok?\"", "path": "assets/sounds/astra3.mp3" },
-    { "label": "\"Five on five, papapapa, we gon clear them all.\"", "path": "assets/sounds/astra4.mp3" }
+    { "label": "\"Five on five, papapapapa, we gon clear them all.\"", "path": "assets/sounds/astra4.mp3" }
   ],
   "breach": [
     { "label": "Default: \"Hell of a job\"", "path": "assets/sounds/breach.mp3" },
