@@ -344,7 +344,10 @@ function spinWheel() {
 // Main animation loop to handle idle rotation + active spin
 function animationLoop(ts) {
   if (!lastFrameTs) lastFrameTs = ts;
-  const dt = Math.min(50, ts - lastFrameTs); // clamp to avoid huge jumps
+  const isHidden = (typeof document !== 'undefined' && document.hidden) ? true : false;
+  const rawDt = ts - lastFrameTs;
+  // Allow larger catch-up when the tab is hidden so spins complete on time
+  const dt = isHidden ? Math.min(800, rawDt) : Math.min(50, rawDt);
   lastFrameTs = ts;
   const dtSec = dt / 1000;
 
@@ -422,7 +425,9 @@ function animationLoop(ts) {
       if (prevIndex != null && !winnerModalOpen) {
         // number of forward slice steps crossed (wrap-aware)
         const crossed = (prevIndex - idx + agents.length) % agents.length;
-        if (crossed > 0) {
+        // Suppress ticks when rotation speed is extremely low to avoid stray ticks near stop
+        const allowTicking = (typeof angularVelocity === 'number') ? (Math.abs(angularVelocity) > 0.15) : true;
+        if (crossed > 0 && allowTicking) {
           // estimate crossing times within this frame for each boundary crossed
           const d = (prevRel - rel + Math.PI * 2) % (Math.PI * 2);
           for (let i = 1; i <= crossed; i++) {
@@ -430,7 +435,10 @@ function animationLoop(ts) {
             const tCrossSec = (i * arc) / (d || arc) * (dtSec);
             // crossing happened tCrossSec after previous frame, which is (dtSec - tCrossSec) seconds ago relative to now
             const relativeToNowSec = tCrossSec - dtSec;
-            const desiredStartSec = relativeToNowSec + (tickOffsetMs / 1000);
+            // Only play ticks that occurred within this frame (or with a tiny lead)
+            // Never schedule ticks in the future to avoid post-stop stray ticks
+            let desiredStartSec = relativeToNowSec + (tickOffsetMs / 1000);
+            if (desiredStartSec > 0) desiredStartSec = 0; // clamp to now
             // schedule a single tick for this crossing
             playTick(1, desiredStartSec);
           }
@@ -444,7 +452,10 @@ function animationLoop(ts) {
   }
 
   drawWheel();
-  requestAnimationFrame(animationLoop);
+  // When visible, drive via rAF; when hidden, a background timer will call animationLoop
+  if (typeof document === 'undefined' || !document.hidden) {
+    requestAnimationFrame(animationLoop);
+  }
 }
 
 // Utility: clamp
@@ -458,3 +469,19 @@ function easeOutQuad(t, b, c, d) {
 function easeInCubic(t) {
   return t * t * t;
 }
+
+// Keep animation progressing when tab is hidden by driving updates with a timer
+let _hiddenDriver = null;
+function startHiddenDriver() {
+  if (_hiddenDriver) return;
+  try { _hiddenDriver = setInterval(() => { animationLoop(performance.now()); }, 100); } catch (e) { _hiddenDriver = null; }
+}
+function stopHiddenDriver() {
+  if (_hiddenDriver) { try { clearInterval(_hiddenDriver); } catch (e) {} _hiddenDriver = null; }
+}
+try {
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) startHiddenDriver();
+    else { stopHiddenDriver(); try { requestAnimationFrame(animationLoop); } catch (e) {} }
+  });
+} catch (e) {}
