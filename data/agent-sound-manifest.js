@@ -43,7 +43,9 @@ window.AGENT_SOUND_MANIFEST = {
   "deadlock": [
     { "label": "Default:\"Å fy faen! Well done!\"", "path": "assets/sounds/deadlock.mp3" },
     { "label": "\"Midt i smørøyet.\"", "path": "assets/sounds/deadlock2.mp3" },
-    { "label": "\"Dra til helvete.\"", "path": "assets/sounds/deadlock3.mp3" }
+    { "label": "\"Dra til helvete.\"", "path": "assets/sounds/deadlock3.mp3" },
+    { "label": "\"Take a nap.\"", "path": "assets/sounds/deadlock4.mp3" },
+    { "label": "\"I've taken walks more dangerous than this.\"", "path": "assets/sounds/deadlock5.mp3" },
   ],
   "fade": [
     { "label": "Default: \"Ok, time for coffee, my treat.\"", "path": "assets/sounds/fade.mp3" },
@@ -55,12 +57,16 @@ window.AGENT_SOUND_MANIFEST = {
   "gekko": [
     { "label": "Default: \"Vibe check, we feeling good? Hope so, hope so.\"", "path": "assets/sounds/gekko.mp3" },
     { "label": "*laughs*", "path": "assets/sounds/gekko2.mp3" },
-    { "label": "\"Cálmate, hotshot.\"", "path": "assets/sounds/gekko3.mp3" }
+    { "label": "\"Cálmate, hotshot.\"", "path": "assets/sounds/gekko3.mp3" },
+    { "label": "\"Qué lindo! Can I take a picture? My mom loves flowers.\"", "path": "assets/sounds/gekko4.mp3" },
+    { "label": "\"This is my house, baby. My house.\"", "path": "assets/sounds/gekko5.mp3" },
   ],
   "harbor": [
     { "label": "Default:\"After this, the first round of chai is on me.\"", "path": "assets/sounds/harbor.mp3" },
     { "label": "*laughs* \"Loosen up. It's only life or death.\"", "path": "assets/sounds/harbor2.mp3" },
-    { "label": "*laughs* \"Amateurs.\"", "path": "assets/sounds/harbor3.mp3" }
+    { "label": "*laughs* \"Amateurs.\"", "path": "assets/sounds/harbor3.mp3" },
+    { "label": "\"See that older building? How the roof follows the silver ratio.\" *laughs* \"Who said maths wasn't beautiful?\"", "path": "assets/sounds/harbor4.mp3" },
+    { "label": "\"Will you look at those basalt columns! You know those hexagonal shapes form naturally.\"", "path": "assets/sounds/harbor5.mp3" },
   ],
   "iso": [
     { "label": "Default: \"I didn't bring a snack... Did anyone bring a snack?\"", "path": "assets/sounds/iso.mp3" },
@@ -72,12 +78,15 @@ window.AGENT_SOUND_MANIFEST = {
   "jett": [
     { "label": "Default: \"There you are, you little shit.\"", "path": "assets/sounds/jett.mp3" },
     { "label": "\"Snack time! Mmm, sorry, only brought enough for me.\"", "path": "assets/sounds/jett2.mp3" },
-    { "label": "\"I'm hungry. Anyone hungry? Lunch on Brimstone after this.\"", "path": "assets/sounds/jett3.mp3" }
+    { "label": "\"I'm hungry. Anyone hungry? Lunch on Brimstone after this.\"", "path": "assets/sounds/jett3.mp3" },
+    { "label": "\"Uh. Okay, sauna time!\"", "path": "assets/sounds/jett4.mp3" },
+    { "label": "\"I'm bored. Let's go.\"", "path": "assets/sounds/jett5.mp3" },
   ],
   "kayo": [
     { "label": "Default: \"You want a piece of this?\"", "path": "assets/sounds/kayo.mp3" },
     { "label": "\"Cancelled.\"", "path": "assets/sounds/kayo2.mp3" },
-    { "label": "\"Gottem.\"", "path": "assets/sounds/kayo3.mp3" }
+    { "label": "\"Gottem.\"", "path": "assets/sounds/kayo3.mp3" },
+    { "label": "\"I'm about to go full killer robot. You've been warned.\"", "path": "assets/sounds/kayo4.mp3" },
   ],
   "killjoy": [
     { "label": "Default: \"Let's make this extraction quick. After this, I'm going clubbing five time zones away, and a girl needs a moment to change.\"", "path": "assets/sounds/killjoy.mp3" },
@@ -89,11 +98,15 @@ window.AGENT_SOUND_MANIFEST = {
   "neon": [
     { "label": "Default: \"Get rekt!\"", "path": "assets/sounds/neon.mp3" },
     { "label": "\"Are you kidding me right now?\"", "path": "assets/sounds/neon2.mp3" },
-    { "label": "\"Yup.\"", "path": "assets/sounds/neon3.mp3" }
+    { "label": "\"Yup.\"", "path": "assets/sounds/neon3.mp3" },
+    { "label": "\"My advice? Don't get shot.\"", "path": "assets/sounds/neon4.mp3" },
   ],
   "omen": [
     { "label": "Default: \"Boo.\"", "path": "assets/sounds/omen.mp3" },
-    { "label": "*grunts*", "path": "assets/sounds/omen2.mp3" }
+    { "label": "\"Out of my way.\"", "path": "assets/sounds/omen2.mp3" },
+    { "label": "\"You thought you could escape my nightmare?\"", "path": "assets/sounds/omen4.mp3" },
+    { "label": "\"Kick them when they're down.\"", "path": "assets/sounds/omen5.mp3" },
+    { "label": "\"Sad fools stand in our way.\"", "path": "assets/sounds/omen6.mp3" },
   ],
   "phoenix": [
     { "label": "Default: \"Yes, yes, it's me. Autographs if we survive, yeah?\"", "path": "assets/sounds/phoenix.mp3" },
@@ -106,7 +119,8 @@ window.AGENT_SOUND_MANIFEST = {
   "raze": [
     { "label": "Default: \"Okay! Who's got the snacks?\"", "path": "assets/sounds/raze.mp3" },
     { "label": "\"Wait, what? I'm listening to music, let me just- You say something? What did you say?\"", "path": "assets/sounds/raze2.mp3" },
-    { "label": "\"Boom!\"", "path": "assets/sounds/raze3.mp3" }
+    { "label": "\"Boom!\"", "path": "assets/sounds/raze3.mp3" },
+    { "label": "\"Yes, I'm pumped!\"", "path": "assets/sounds/raze4.mp3" },
   ],
   "reyna": [
     { "label": "Default: \"Hello, darling.\"", "path": "assets/sounds/reyna.mp3" },
@@ -118,7 +132,9 @@ window.AGENT_SOUND_MANIFEST = {
   "sage": [
     { "label": "Default: \"Hello.\"", "path": "assets/sounds/sage.mp3" },
     { "label": "\"I'm satisfied.\"", "path": "assets/sounds/sage2.mp3" },
-    { "label": "\"You are a boulder. I am a mountain!\"", "path": "assets/sounds/sage3.mp3" }
+    { "label": "\"You are a boulder. I am a mountain!\"", "path": "assets/sounds/sage3.mp3" },
+    { "label": "\"Be at peace.\"", "path": "assets/sounds/sage4.mp3" },
+    { "label": "\"Unavoidable.\"", "path": "assets/sounds/sage5.mp3" },
   ],
   "skye": [
     { "label": "Default: \"Pull your socks up!\"", "path": "assets/sounds/skye.mp3" },
@@ -139,7 +155,7 @@ window.AGENT_SOUND_MANIFEST = {
     { "label": "\"I have money.\"", "path": "assets/sounds/sova6.mp3" }
   ],
   "tejo": [
-    { "label": "Default: \"Que nota. Now, let's get something to eat.\"", "path": "assets/sounds/tejo.mp3" },
+    { "label": "Default: \"Qué nota. Now, let's get something to eat.\"", "path": "assets/sounds/tejo.mp3" },
     { "label": "\"Seems like I'm the better one.\"", "path": "assets/sounds/tejo2.mp3" },
     { "label": "\"Mmmhm.\"", "path": "assets/sounds/tejo3.mp3" }
   ],
