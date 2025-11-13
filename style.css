@@ -482,10 +482,34 @@ canvas {
   margin-bottom: 12px;
 }
 
+/* Inputs inside settings modal */
+.settings-modal input[type="text"],
+.settings-modal select,
+.settings-modal textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+}
+
+.settings-modal input[type="text"]::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.settings-modal input[type="text"]:focus,
+.settings-modal select:focus,
+.settings-modal textarea:focus {
+  outline: none;
+}
+
 .setting-row {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  margin-bottom: 10px;
 }
 
 .slider-row input[type="range"] {
