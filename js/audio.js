@@ -1,3 +1,23 @@
+let tickAudioPool = [];
+let tickAudioPoolIdx = 0;
+const TICK_POOL_SIZE = 6; // small pool for overlapping ticks when WebAudio unavailable
+
+function buildTickAudioPool() {
+  try {
+    tickAudioPool = [];
+    if (!fallbackTickAudio || !fallbackTickAudio.src) return;
+    for (let i = 0; i < TICK_POOL_SIZE; i++) {
+      const a = new Audio(fallbackTickAudio.src);
+      a.preload = 'auto';
+      a.volume = tickVolume;
+      try { a.load(); } catch (e) {}
+      tickAudioPool.push(a);
+    }
+    tickAudioPoolIdx = 0;
+    try { window.tickAudioPool = tickAudioPool; } catch (e) {}
+  } catch (e) { /* ignore */ }
+}
+
 async function loadTickSound() {
   const paths = ['assets/sounds/spin.mp3'];
   // If running from file:// protocol the fetch/decode route will fail due to browser restrictions.
@@ -9,6 +29,8 @@ async function loadTickSound() {
       fallbackTickAudio = new Audio(paths[0]);
       fallbackTickAudio.preload = 'auto';
       fallbackTickAudio.volume = tickVolume;
+      try { fallbackTickAudio.load(); } catch (e) {}
+      buildTickAudioPool();
     } catch (e) {
       console.warn('Failed to create fallback tick audio on file:// protocol', e);
     }
@@ -23,7 +45,7 @@ async function loadTickSound() {
       // try candidate paths until one decodes
       for (const p of paths) {
         try {
-          const resp = await fetch(p);
+          const resp = await fetch(p, { cache: 'force-cache' });
           if (!resp.ok) continue;
           const ab = await resp.arrayBuffer();
           try {
@@ -52,6 +74,8 @@ async function loadTickSound() {
       a.preload = 'auto';
       a.volume = tickVolume;
       fallbackTickAudio = a;
+      try { fallbackTickAudio.load(); } catch (e) {}
+      buildTickAudioPool();
       break;
     } catch (e) {
       continue;
@@ -87,7 +111,11 @@ function playTick(times = 1, startOffsetSec = 0) {
   } else if (fallbackTickAudio) {
     for (let i = 0; i < times; i++) {
       try {
-        const a = new Audio(fallbackTickAudio.src);
+        // rotate through a small pool of preloaded elements to avoid re-downloading
+        if (!tickAudioPool || !tickAudioPool.length) buildTickAudioPool();
+        const a = tickAudioPool[(tickAudioPoolIdx++) % tickAudioPool.length] || fallbackTickAudio;
+        try { a.pause(); } catch (e) {}
+        try { a.currentTime = 0; } catch (e) {}
         a.volume = tickVolume;
         const delayMs = Math.max(0, Math.round((startOffsetSec + i * spacing) * 1000));
         setTimeout(() => { a.play().catch(() => {}); }, delayMs);

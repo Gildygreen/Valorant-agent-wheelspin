@@ -62,6 +62,7 @@ function openWinnerModalForAgent(agent, options = {}) {
     winnerModal.removeAttribute('inert');
     idlePaused = true;
     winnerModalOpen = true;
+    try { if (typeof refreshModalOpenClass === 'function') refreshModalOpenClass(); } catch (e) {}
     angularVelocity = 0;
     // Blur only the wheel while the modal is visible
     try {
@@ -116,6 +117,7 @@ function closeWinnerModal(options = {}) {
   winnerModal.setAttribute('inert', '');
   idlePaused = false;
   winnerModalOpen = false;
+  try { if (typeof refreshModalOpenClass === 'function') refreshModalOpenClass(); } catch (e) {}
   // Remove wheel blur once the modal closes
   try {
     const wheelContainer = document.getElementById('wheelContainer');

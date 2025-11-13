@@ -1,10 +1,25 @@
 const AGENT_SOUND_PREFS_KEY = 'agentSoundPrefs';
+const ROLE_FILTER_KEY = 'roleFilterSelection';
 const MAX_AGENT_SOUND_VARIANTS = 8;
 const agentSoundPrefs = loadAgentSoundPrefs();
 const agentSoundExistenceCache = new Map();
 const soundManifest = typeof window !== 'undefined' ? (window.AGENT_SOUND_MANIFEST || null) : null;
 const isFileProtocol = typeof window !== 'undefined' && window.location && window.location.protocol === 'file:';
 const agentOrderMap = new Map();
+let ROLE_ICONS = { Controller: null, Duelist: null, Initiator: null, Sentinel: null };
+
+function getStoredRoles() {
+  try {
+    const raw = localStorage.getItem(ROLE_FILTER_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) { return []; }
+}
+
+function persistStoredRoles(list) {
+  try { localStorage.setItem(ROLE_FILTER_KEY, JSON.stringify(list || [])); } catch (e) {}
+}
 
 function loadAgentSoundPrefs() {
   try {
@@ -285,6 +300,8 @@ async function loadAgentsFromValorantApi() {
         img: a.displayIcon || a.bustPortrait || '',
         color: '#888888',
         winSounds: [],
+        role: (a.role && a.role.displayName) ? a.role.displayName : null,
+        roleIcon: (a.role && a.role.displayIcon) ? a.role.displayIcon : null,
       }));
 
     seedAgentDefaultSounds(fetched);
@@ -320,19 +337,31 @@ async function loadAgentsFromValorantApi() {
 
       // Ensure a color exists: prefer listed color, otherwise fallback to name-based generator
       if (!f.color) f.color = nameToColor(f.name);
+
+      // Capture role icons
+      if (f.role && f.roleIcon && !ROLE_ICONS[f.role]) {
+        ROLE_ICONS[f.role] = f.roleIcon;
+      }
     });
 
     await Promise.all(loads);
     // Skip preloading sounds for fetched agents; they will be loaded on demand.
 
-    // Replace agents and redraw
-    agents = fetched;
+    // Replace agents and redraw; keep master list
+    allAgents = fetched;
+    const selectedRoles = getStoredRoles();
+    if (selectedRoles && selectedRoles.length) {
+      agents = allAgents.filter(a => a.role && selectedRoles.includes(a.role));
+    } else {
+      agents = allAgents;
+    }
     applyRandomizeSoundRules();
     // reset pointer-relative tracking so tick detection doesn't fire spuriously
     prevRel = null;
     drawWheel();
     populatePerAgentSettings();
     populateDebugAgentSelect();
+    try { if (typeof window.refreshRoleFilterIcons === 'function') window.refreshRoleFilterIcons(ROLE_ICONS); } catch (e) {}
     try { markWheelAssetsReady(); } catch (e) {}
   } catch (e) {
     console.warn('Failed to load agents from API', e);
@@ -342,3 +371,25 @@ async function loadAgentsFromValorantApi() {
 
 // Kick off agent loading
 loadAgentsFromValorantApi();
+
+// Expose role filter helpers
+window.applyRoleFilter = function applyRoleFilter(selectedRoles = []) {
+  try {
+    const list = Array.isArray(selectedRoles) ? selectedRoles : [];
+    persistStoredRoles(list);
+    if (!allAgents || !allAgents.length) { drawWheel(); return; }
+    const hasRoleData = allAgents.some(a => !!a.role);
+    if (!list.length || !hasRoleData) {
+      agents = allAgents;
+    } else {
+      agents = allAgents.filter(a => a.role && list.includes(a.role));
+    }
+    // Redraw and refresh dependent UIs
+    prevRel = null;
+    drawWheel();
+    try { populatePerAgentSettings(); } catch (e) {}
+    try { populateDebugAgentSelect(); } catch (e) {}
+  } catch (e) {}
+};
+
+window.getRoleFilterSelection = getStoredRoles;

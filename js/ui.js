@@ -9,6 +9,13 @@ const agentWinVolumeLabel = document.getElementById('agentVolumeLabel');
 const tickVolumeLabel = document.getElementById('tickVolumeLabel');
 const pointerColorInput = document.getElementById('pointerColor');
 const usernameInputUi = document.getElementById('usernameInput');
+const roleFilterBar = document.getElementById('roleFilterBar');
+const roleButtons = [
+  { id: 'roleBtnController', role: 'Controller' },
+  { id: 'roleBtnDuelist', role: 'Duelist' },
+  { id: 'roleBtnInitiator', role: 'Initiator' },
+  { id: 'roleBtnSentinel', role: 'Sentinel' },
+];
 
 if (shareWinnerBtn) {
   shareWinnerBtn.disabled = true;
@@ -62,7 +69,12 @@ if (tickVolumeRange) {
     tickVolume = isNaN(v) ? 0.5 : v;
     localStorage.setItem('tickVolume', String(tickVolume));
     // apply to fallback audio if present
-    try { if (fallbackTickAudio) fallbackTickAudio.volume = tickVolume; } catch (e) {}
+    try {
+      if (fallbackTickAudio) fallbackTickAudio.volume = tickVolume;
+      if (window.tickAudioPool && Array.isArray(window.tickAudioPool)) {
+        window.tickAudioPool.forEach((a) => { try { a.volume = tickVolume; } catch (e) {} });
+      }
+    } catch (e) {}
     if (tickVolumeLabel) tickVolumeLabel.textContent = Math.round(tickVolume * 100) + '%';
   });
 }
@@ -117,6 +129,60 @@ if (usernameInputUi) {
   usernameInputUi.addEventListener('change', (e) => persist(e.target.value));
 }
 
+// Role filter wiring
+function getCurrentRoleSelection() {
+  try {
+    if (typeof getRoleFilterSelection === 'function') return getRoleFilterSelection();
+  } catch (e) {}
+  try {
+    const raw = localStorage.getItem('roleFilterSelection');
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) { return []; }
+}
+
+function setRolePressed(btn, pressed) {
+  try { btn.setAttribute('aria-pressed', pressed ? 'true' : 'false'); } catch (e) {}
+  if (pressed) btn.classList.add('selected'); else btn.classList.remove('selected');
+}
+
+function applySelectionAndFilter(selection) {
+  try {
+    if (typeof applyRoleFilter === 'function') applyRoleFilter(selection);
+  } catch (e) {}
+}
+
+function wireRoleButtons() {
+  if (!roleFilterBar) return;
+  const selection = new Set(getCurrentRoleSelection());
+  roleButtons.forEach(({ id, role }) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    setRolePressed(el, selection.has(role));
+    el.addEventListener('click', () => {
+      if (selection.has(role)) selection.delete(role); else selection.add(role);
+      setRolePressed(el, selection.has(role));
+      applySelectionAndFilter(Array.from(selection));
+    });
+  });
+}
+
+function updateRoleButtonIcons(icons) {
+  try {
+    roleButtons.forEach(({ id, role }) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const img = el.querySelector('img');
+      const src = icons && icons[role];
+      if (img && src) { img.src = src; img.style.opacity = '1'; }
+    });
+  } catch (e) {}
+}
+
+wireRoleButtons();
+// Allow data.js to refresh icons after API load
+window.refreshRoleFilterIcons = updateRoleButtonIcons;
+
 // Pointer arrow color picker
 if (pointerColorInput) {
   try {
@@ -166,13 +232,18 @@ requestAnimationFrame(animationLoop);
 if (settingsBtn && settingsModal && closeSettings) {
   settingsBtn.addEventListener('click', () => {
     settingsModal.setAttribute('aria-hidden', 'false');
+    try { if (typeof refreshModalOpenClass === 'function') refreshModalOpenClass(); } catch (e) {}
   });
   closeSettings.addEventListener('click', () => {
     settingsModal.setAttribute('aria-hidden', 'true');
+    try { if (typeof refreshModalOpenClass === 'function') refreshModalOpenClass(); } catch (e) {}
   });
   // Close when clicking outside modal-content
   settingsModal.addEventListener('click', (e) => {
-    if (e.target === settingsModal) settingsModal.setAttribute('aria-hidden', 'true');
+    if (e.target === settingsModal) {
+      settingsModal.setAttribute('aria-hidden', 'true');
+      try { if (typeof refreshModalOpenClass === 'function') refreshModalOpenClass(); } catch (err) {}
+    }
   });
 }
 
@@ -216,6 +287,7 @@ document.addEventListener('keydown', (e) => {
       settingsModal.setAttribute('aria-hidden', 'true');
       handled = true;
     }
+    try { if (typeof refreshModalOpenClass === 'function') refreshModalOpenClass(); } catch (e) {}
     if (handled) e.preventDefault();
     return;
   }
