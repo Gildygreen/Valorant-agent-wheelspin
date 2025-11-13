@@ -3,7 +3,7 @@ window.AGENT_SOUND_MANIFEST = {
     { "label": "Default:  *humming*", "path": "assets/sounds/astra.mp3" },
     { "label": "\"Boom\" *laughs*", "path": "assets/sounds/astra2.mp3" },
     { "label": "\"Waddap suckers, you ok?\"", "path": "assets/sounds/astra3.mp3" },
-    { "label": "\"Five on five, papapapa, we gon clear them all.\"", "path": "assets/sounds/astra4.mp3" }
+    { "label": "\"Five on five, papapapapa, we gon clear them all.\"", "path": "assets/sounds/astra4.mp3" }
   ],
   "breach": [
     { "label": "Default: \"Hell of a job\"", "path": "assets/sounds/breach.mp3" },
@@ -173,7 +173,8 @@ window.AGENT_SOUND_MANIFEST = {
     { "label": "\"Take a minute, appreciate the journey. Then we wrap this party up.\"", "path": "assets/sounds/waylay4.mp3" },
     { "label": "\"Absolutely demolished.\"", "path": "assets/sounds/waylay5.mp3" },
     { "label": "\"Don't miss me too much.\"", "path": "assets/sounds/waylay6.mp3" },
-    { "label": "\"I could have sworn we were about to fight, but you fools all look ready for nap time. Be tired later, yeah?\"", "path": "assets/sounds/waylay7.mp3" }
+    { "label": "\"I could have sworn we were about to fight, but you fools all look ready for nap time. Be tired later, yeah?\"", "path": "assets/sounds/waylay7.mp3" },
+    { "label": "\"Shh... The kids are sleeping.\"", "path": "assets/sounds/waylay8.mp3" },
   ],
   "yoru": [
     { "label": "Default: \"Class dismissed.\"", "path": "assets/sounds/yoru.mp3" },
