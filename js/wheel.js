@@ -158,12 +158,12 @@ function loadCenterIcon() {
     if (!window.location.protocol.startsWith('file')) {
       centerIcon.crossOrigin = 'Anonymous';
     }
-    centerIcon.src = 'assets/images/icon.gif';
+    centerIcon.src = 'assets/images/icon.png';
     centerIcon.onload = () => {
       drawWheel();
     };
     centerIcon.onerror = () => {
-      console.warn('Failed to load center icon from: assets/images/icon.gif');
+      console.warn('Failed to load center icon from: assets/images/icon.png');
     };
   } catch (e) {
     console.warn('Error loading center icon:', e);
