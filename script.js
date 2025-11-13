@@ -199,6 +199,21 @@ let drumFadeInterval = null;
 
 // Center icon (stationary, non-spinning)
 let centerIcon = null;
+const centerIconBorderColor = 'rgba(0, 0, 0, 0.6)';
+const mobileBreakpointPx = 768;
+const centerIconMinDesktopPx = 260;
+const centerIconMinMobilePx = 110;
+
+function isMobileViewport() {
+  try {
+    const width = window.innerWidth || canvas.width || 0;
+    const height = window.innerHeight || canvas.height || 0;
+    const shortest = width && height ? Math.min(width, height) : width || height;
+    return shortest <= mobileBreakpointPx;
+  } catch (e) {
+    return false;
+  }
+}
 
 // Small helper: convert RGB to hex
 function rgbToHex(r, g, b) {
@@ -240,18 +255,31 @@ function drawWheel() {
   const cssHeight = canvas.height / dpr;
   const centerX = cssWidth / 2;
   const centerY = cssHeight / 2;
-  const radius = Math.min(cssWidth, cssHeight) / 2 - 20; // margin
+  const radius = Math.min(cssWidth, cssHeight) / 2; // margin
   const arc = Math.PI * 2 / agents.length;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   agents.forEach((agent, i) => {
     const angle = startAngle + i * arc;
+    const midAngle = angle + arc / 2;
+    ctx.save();
     ctx.beginPath();
     ctx.fillStyle = agent.color || '#666';
     ctx.moveTo(centerX, centerY);
     ctx.arc(centerX, centerY, radius, angle, angle + arc, false);
-    ctx.lineTo(centerX, centerY);
+    ctx.closePath();
+    // add subtle drop shadow per slice for depth
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+    ctx.shadowBlur = Math.max(4, radius * 0.03);
+    ctx.shadowOffsetX = Math.cos(midAngle) * 2;
+    ctx.shadowOffsetY = Math.sin(midAngle) * 2;
     ctx.fill();
+    // outline slice to separate colors visually
+    ctx.shadowColor = 'transparent';
+    ctx.lineWidth = Math.max(1, radius * 0.01);
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.stroke();
+    ctx.restore();
 
     // Draw agent image if available — larger and spaced further out
     if (agent._image && agent._image.complete) {
@@ -320,16 +348,40 @@ function drawWheel() {
   // Draw center icon (stationary, non-spinning) as a circle
   try {
     if (centerIcon && centerIcon.complete) {
-      const iconSize = Math.max(300, Math.floor(radius * 0.25));
+      const desiredSize = Math.floor(radius * 0.5);
+      const baseMin = isMobileViewport() ? centerIconMinMobilePx : centerIconMinDesktopPx;
+      const minSize = Math.max(baseMin, Math.floor(radius * 0.25));
+      const maxSize = Math.max(minSize + 1, Math.floor(radius * 0.7));
+      const iconSize = clamp(desiredSize, minSize, maxSize);
       const iconX = centerX - iconSize / 2;
       const iconY = centerY - iconSize / 2;
       
       ctx.save();
+      // Draw subtle halo for depth before clipping
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, iconSize / 2, 0, Math.PI * 2);
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+      ctx.shadowBlur = Math.max(10, radius * 0.08);
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = Math.max(4, radius * 0.02);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
       // Clip to circle and draw icon
       ctx.beginPath();
       ctx.arc(centerX, centerY, iconSize / 2, 0, Math.PI * 2);
       ctx.clip();
       ctx.drawImage(centerIcon, iconX, iconY, iconSize, iconSize);
+      ctx.restore();
+
+      // Border ring to make the icon pop
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, iconSize / 2, 0, Math.PI * 2);
+      ctx.lineWidth = Math.max(4, radius * 0.025);
+      ctx.strokeStyle = centerIconBorderColor;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+      ctx.shadowBlur = Math.max(6, radius * 0.05);
+      ctx.stroke();
       ctx.restore();
     }
   } catch (e) {
@@ -831,11 +883,17 @@ function showWinnerModal() {
     winnerModalName.textContent = 'You will be playing ' + winnerAgent.name;
     winnerModalImage.src = winnerAgent.img || 'assets/images/default-avatar.jpg';
     winnerModal.setAttribute('aria-hidden', 'false');
+    winnerModal.removeAttribute('inert');
     // Pause idle spinning while the winner popup is visible
     idlePaused = true;
     winnerModalOpen = true;
     // ensure any residual idle velocity is stopped immediately
     angularVelocity = 0;
+    const focusTarget = closeWinnerBtn || closeWinner;
+    if (focusTarget && typeof focusTarget.focus === 'function') {
+      try { focusTarget.focus({preventScroll: true}); }
+      catch (e) { try { focusTarget.focus(); } catch (err) {} }
+    }
   }
   
   const winSoundPath = randomizeWinSounds 
@@ -850,6 +908,29 @@ function showWinnerModal() {
 
   // Re-enable the spin button after the spin completes
   if (spinBtn) spinBtn.disabled = false;
+}
+
+function closeWinnerModal(options = {}) {
+  const { restoreFocus = true } = options;
+  if (!winnerModal) return;
+  try {
+    const active = document.activeElement;
+    if (active && winnerModal.contains(active) && typeof active.blur === 'function') {
+      active.blur();
+    }
+  } catch (e) {}
+  winnerModal.setAttribute('aria-hidden', 'true');
+  winnerModal.setAttribute('inert', '');
+  idlePaused = false;
+  winnerModalOpen = false;
+  try { stopDrumroll(); } catch (e) {}
+  if (spinBtn) {
+    spinBtn.disabled = false;
+    if (restoreFocus && typeof spinBtn.focus === 'function') {
+      try { spinBtn.focus({preventScroll: true}); }
+      catch (e) { try { spinBtn.focus(); } catch (err) {} }
+    }
+  }
 }
 
 // Easing function used for the spin animation
@@ -994,21 +1075,12 @@ if (settingsBtn && settingsModal && closeSettings) {
 // Winner modal close handlers
 if (winnerModal && closeWinner) {
   closeWinner.addEventListener('click', () => {
-    winnerModal.setAttribute('aria-hidden', 'true');
-    idlePaused = false;
-    // allow idle to gracefully resume (angularVelocity will blend toward idleAngularVelocity)
-    winnerModalOpen = false;
-    try { stopDrumroll(); } catch (e) {}
-    if (spinBtn) spinBtn.disabled = false;
+    closeWinnerModal({restoreFocus: true});
   });
 }
 if (closeWinnerBtn && winnerModal) {
   closeWinnerBtn.addEventListener('click', () => {
-    winnerModal.setAttribute('aria-hidden', 'true');
-    idlePaused = false;
-    winnerModalOpen = false;
-    try { stopDrumroll(); } catch (e) {}
-    if (spinBtn) spinBtn.disabled = false;
+    closeWinnerModal({restoreFocus: true});
   });
 }
 
@@ -1016,11 +1088,7 @@ if (closeWinnerBtn && winnerModal) {
 if (winnerModal) {
   winnerModal.addEventListener('click', (e) => {
     if (e.target === winnerModal) {
-      winnerModal.setAttribute('aria-hidden', 'true');
-      idlePaused = false;
-      winnerModalOpen = false;
-      try { stopDrumroll(); } catch (e) {}
-      if (spinBtn) spinBtn.disabled = false;
+      closeWinnerModal({restoreFocus: true});
     }
   });
 }
