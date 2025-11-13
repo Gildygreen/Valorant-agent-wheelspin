@@ -444,7 +444,6 @@ canvas {
 }
 
 .settings-section {
-  background: radial-gradient(circle at top, rgba(255,255,255,0.08), rgba(0,0,0,0.45));
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 18px;
   padding: 16px 18px;
@@ -457,6 +456,9 @@ canvas {
 .settings-section.wide.hidden {
   display: none;
 }
+
+/* Also hide standard sections when toggled via .hidden */
+.settings-section.hidden { display: none; }
 
 .settings-section h4 {
   margin: 0 0 6px;
@@ -702,3 +704,17 @@ canvas {
 }
 
 /* Other styling for agent list can go here */
+
+/* Settings density tweaks (override earlier spacing for a more compact layout) */
+.settings-modal { padding: 12px 12px 10px; }
+.settings-modal h3 { margin-bottom: 10px; }
+.settings-layout { gap: 12px; }
+.settings-section { padding: 12px 14px; }
+.settings-section.wide { padding-bottom: 6px; }
+.settings-section h4 { margin: 0 0 4px; }
+.settings-subtitle { margin: 0 0 8px; }
+.toggle-label { margin-bottom: 8px; }
+.setting-row { gap: 6px; }
+.agent-setting { padding: 10px; margin-bottom: 8px; }
+.agent-sound-list { gap: 4px; }
+.agent-sound-row { padding: 4px 8px; }

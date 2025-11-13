@@ -44,6 +44,16 @@ function getStoredNumber(key, fallback) {
   return isNaN(value) ? fallback : value;
 }
 
+function getStoredString(key, fallback) {
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored === null || stored === undefined || stored === '') return fallback;
+    return String(stored);
+  } catch (e) {
+    return fallback;
+  }
+}
+
 // Store user preferences
 let randomizeWinSounds = getStoredBoolean('randomizeWinSounds', true);
 let agentWinVolume = getStoredNumber('agentWinVolume', 0.5);
@@ -51,6 +61,10 @@ let agentWinVolume = getStoredNumber('agentWinVolume', 0.5);
 // Tick sound preferences
 let tickEnabled = getStoredBoolean('tickEnabled', true);
 let tickVolume = getStoredNumber('tickVolume', 0.5);
+
+// Pointer arrow color
+let pointerColor = normalizeHex(getStoredString('pointerColor', '#ffd45c')) || '#ffd45c';
+window.pointerColor = pointerColor;
 
 let startAngle = 0;
 let spinning = false;
