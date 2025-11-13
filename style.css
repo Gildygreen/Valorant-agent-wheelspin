@@ -200,6 +200,100 @@ canvas {
   color: var(--winner-muted);
 }
 
+.debug-panel {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  width: min(280px, calc(100vw - 32px));
+  background: rgba(10, 10, 18, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.55);
+  padding: 14px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px) scale(0.98);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 999;
+}
+
+.debug-panel.debug-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.debug-panel-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: #f1f1f1;
+  font-size: 0.9rem;
+}
+
+.debug-panel-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #b0b7ff;
+}
+
+.debug-panel-title {
+  font-weight: 600;
+}
+
+.debug-panel-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.debug-panel-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.75);
+  text-align: left;
+}
+
+.debug-panel-select,
+.debug-panel-action {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(20, 20, 32, 0.9);
+  color: #fff;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+}
+
+.debug-panel-select:focus-visible,
+.debug-panel-action:focus-visible {
+  outline: 2px solid #7b8bff;
+  outline-offset: 2px;
+}
+
+.debug-panel-action {
+  cursor: pointer;
+  background: linear-gradient(120deg, #5662d5, #7b8bff);
+  border: none;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.debug-panel-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+  text-align: center;
+}
+
 /* Settings cog */
 .settings-btn {
   position: fixed;

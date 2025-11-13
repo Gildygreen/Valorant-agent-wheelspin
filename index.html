@@ -95,6 +95,19 @@
     </div>
   </div>
 
+  <div id="debugPanel" class="debug-panel" aria-hidden="true">
+    <div class="debug-panel-inner">
+      <div class="debug-panel-row">
+        <span class="debug-panel-title">Winner preview (debug)</span>
+        <button id="debugHideBtn" type="button" class="debug-panel-close" aria-label="Hide debug panel">&times;</button>
+      </div>
+      <label for="debugAgentSelect" class="debug-panel-label">Preview agent</label>
+      <select id="debugAgentSelect" class="debug-panel-select"></select>
+      <button id="debugShowWinnerBtn" type="button" class="debug-panel-action">Show winner modal</button>
+      <p class="debug-panel-hint">Press ESC to hide</p>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>

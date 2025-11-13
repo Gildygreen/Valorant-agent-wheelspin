@@ -17,6 +17,10 @@ const settingsBtn = document.getElementById('settingsBtn');
 const settingsModal = document.getElementById('settingsModal');
 const closeSettings = document.getElementById('closeSettings');
 const perAgentSettingsDiv = document.getElementById('perAgentSettings');
+const debugPanel = document.getElementById('debugPanel');
+const debugAgentSelect = document.getElementById('debugAgentSelect');
+const debugShowWinnerBtn = document.getElementById('debugShowWinnerBtn');
+const debugHideBtn = document.getElementById('debugHideBtn');
 
 // List of agents (as of Nov 2025) — alphabetical
 let agents = [
@@ -154,6 +158,11 @@ let lastFrameTs = null;
 let spinTriggered = false;
 let idlePaused = false; // when true, idle rotation is suspended (e.g., while winner modal is open)
 let winnerModalOpen = false;
+const DEBUG_KEY_SEQUENCE = ['q', 'h', 'd', 's'];
+const DEBUG_SEQUENCE_RESET_MS = 1800;
+let debugKeyBuffer = [];
+let debugSequenceTimer = null;
+let debugPanelVisible = false;
 
 // spin ramp state
 let spinRampTotalMs = 300; // ramp up time in ms
@@ -329,8 +338,8 @@ function applyWinnerTheme(theme) {
     '--winner-primary-dark': theme.contrast,
     '--winner-accent': theme.accent,
     '--winner-shadow': theme.shadow,
-    '--winner-text': theme.text,
-    '--winner-muted': theme.muted,
+    '--winner-text': '#ffffff',
+    '--winner-muted': 'rgba(255, 255, 255, 0.78)',
   };
   Object.entries(vars).forEach(([k, v]) => content.style.setProperty(k, v));
 }
@@ -960,6 +969,73 @@ function scheduleDrumrollStop(delayMs = 1800, fadeDurationMs = 300) {
 loadDrumrollSound().catch(() => {});
 
 // Stop and select winner — show modal immediately without overshoot snap
+function generateProofId(prefix = 'SPIN') {
+  let token = null;
+  try {
+    if (crypto?.randomUUID) token = crypto.randomUUID();
+  } catch (e) {}
+  if (!token) {
+    token = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+  return prefix ? `${prefix}-${token}` : token;
+}
+
+function getWinSoundPath(agent) {
+  if (!agent) return null;
+  if (randomizeWinSounds && Array.isArray(agent.winSounds) && agent.winSounds.length) {
+    const idx = Math.floor(Math.random() * agent.winSounds.length);
+    return agent.winSounds[idx]?.path || null;
+  }
+  if (useAgentSounds && Array.isArray(agent.winSounds) && agent.winSounds.length) {
+    const defaultSound = agent.winSounds.find((s) => s.isDefault);
+    if (defaultSound?.path) return defaultSound.path;
+    return agent.winSounds[0]?.path || null;
+  }
+  return globalWinSoundPath || null;
+}
+
+function openWinnerModalForAgent(agent, options = {}) {
+  if (!agent) return;
+  const {
+    playSound = true,
+    proofPrefix = 'SPIN',
+  } = options;
+
+  try {
+    applyWinnerTheme(computeWinnerTheme(agent.color));
+  } catch (e) {}
+
+  lastWinnerAgent = agent;
+  lastSpinProofId = proofPrefix ? generateProofId(proofPrefix) : null;
+  if (shareWinnerBtn) shareWinnerBtn.disabled = false;
+  if (shareStatus) shareStatus.textContent = '';
+
+  if (winnerModal && winnerModalName && winnerModalImage) {
+    winnerModalName.textContent = 'You will be playing ' + agent.name;
+    winnerModalImage.src = agent.img || 'assets/images/default-avatar.jpg';
+    winnerModal.setAttribute('aria-hidden', 'false');
+    winnerModal.removeAttribute('inert');
+    idlePaused = true;
+    winnerModalOpen = true;
+    angularVelocity = 0;
+    const focusTarget = closeWinnerBtn || closeWinner;
+    if (focusTarget && typeof focusTarget.focus === 'function') {
+      try { focusTarget.focus({preventScroll: true}); }
+      catch (e) { try { focusTarget.focus(); } catch (err) {} }
+    }
+  }
+
+  if (playSound) {
+    const winSoundPath = getWinSoundPath(agent);
+    if (winSoundPath) {
+      try {
+        const audio = new Audio(winSoundPath);
+        audio.play().catch(() => {});
+      } catch (e) {}
+    }
+  }
+}
+
 function showWinnerModal() {
   if (!agents || agents.length === 0) return; // safety check
   try { scheduleDrumrollStop(1200); } catch (e) {}
@@ -977,46 +1053,7 @@ function showWinnerModal() {
 
   const winnerAgent = agents[index];
   if (!winnerAgent) return; // safety check for undefined agent
-  lastWinnerAgent = winnerAgent;
-  try {
-    if (crypto?.randomUUID) lastSpinProofId = crypto.randomUUID();
-    else lastSpinProofId = 'SPIN-' + Date.now().toString(36);
-  } catch (e) {
-    lastSpinProofId = 'SPIN-' + Date.now().toString(36);
-  }
-  try {
-    applyWinnerTheme(computeWinnerTheme(winnerAgent.color));
-  } catch (e) {}
-  if (shareWinnerBtn) shareWinnerBtn.disabled = false;
-  if (shareStatus) shareStatus.textContent = '';
-  
-  // Show winner modal immediately
-  if (winnerModal && winnerModalName && winnerModalImage) {
-    winnerModalName.textContent = 'You will be playing ' + winnerAgent.name;
-    winnerModalImage.src = winnerAgent.img || 'assets/images/default-avatar.jpg';
-    winnerModal.setAttribute('aria-hidden', 'false');
-    winnerModal.removeAttribute('inert');
-    // Pause idle spinning while the winner popup is visible
-    idlePaused = true;
-    winnerModalOpen = true;
-    // ensure any residual idle velocity is stopped immediately
-    angularVelocity = 0;
-    const focusTarget = closeWinnerBtn || closeWinner;
-    if (focusTarget && typeof focusTarget.focus === 'function') {
-      try { focusTarget.focus({preventScroll: true}); }
-      catch (e) { try { focusTarget.focus(); } catch (err) {} }
-    }
-  }
-  
-  const winSoundPath = randomizeWinSounds 
-    ? winnerAgent.winSounds[Math.floor(Math.random() * winnerAgent.winSounds.length)].path
-    : (useAgentSounds ? (winnerAgent.winSounds.find(s => s.isDefault)?.path || winnerAgent.winSounds[0].path) : globalWinSoundPath);
-
-  // Play the win sound immediately (no delay) so it plays alongside the drumroll
-  if (winSoundPath) {
-    const audio = new Audio(winSoundPath);
-    audio.play().catch(() => {});
-  }
+  openWinnerModalForAgent(winnerAgent, { playSound: true, proofPrefix: 'SPIN' });
 
   // Re-enable the spin button after the spin completes
   if (spinBtn) spinBtn.disabled = false;
@@ -1148,7 +1185,10 @@ async function generateWinnerShareCanvas(agent, theme = lastWinnerTheme) {
   const appliedTheme = theme || computeWinnerTheme(agent?.color);
   const base = appliedTheme?.base || '#7b8bff';
   const dark = appliedTheme?.dark || '#1c2240';
-  const accent = appliedTheme?.accent || '#f4f6ff';
+  const lightColor = appliedTheme?.light || shadeColor(base, 0.35);
+  const brightText = '#ffffff';
+  const lightText = 'rgba(255, 255, 255, 0.85)';
+  const mutedText = 'rgba(255, 255, 255, 0.7)';
   const width = 900;
   const height = 480;
   const canvas = document.createElement('canvas');
@@ -1213,28 +1253,36 @@ async function generateWinnerShareCanvas(agent, theme = lastWinnerTheme) {
 
   const name = agent?.name || 'Unknown Agent';
   const timestamp = new Date().toLocaleString();
-  ctx.fillStyle = hexToRgba(base, 0.65);
+  ctx.fillStyle = lightText;
   ctx.font = '18px "Segoe UI", "Montserrat", sans-serif';
-  ctx.fillText('Valorant Agent Wheelspin', 420, 70);
+  ctx.fillText('Valorant Agent Wheelspin', 420, 65);
 
-  ctx.fillStyle = accent;
-  ctx.font = '48px "Montserrat", "Segoe UI", sans-serif';
-  ctx.fillText(name, 420, 135);
+  ctx.fillStyle = mutedText;
+  ctx.font = '14px "Montserrat", "Segoe UI", sans-serif';
+  ctx.fillText('AGENT SELECTED', 420, 100);
 
-  ctx.fillStyle = '#c6c9ff';
+  ctx.fillStyle = brightText;
+  ctx.shadowColor = appliedTheme?.shadow || 'rgba(0,0,0,0.45)';
+  ctx.shadowBlur = 12;
+  ctx.font = '56px "Montserrat", "Segoe UI", sans-serif';
+  ctx.fillText(name, 420, 155);
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = lightText;
   ctx.font = '22px "Segoe UI", sans-serif';
-  ctx.fillText(`Spin Time: ${timestamp}`, 420, 200);
+  ctx.fillText(`Spin Time: ${timestamp}`, 420, 210);
 
   const url = window?.location?.href;
   if (url) {
-    ctx.fillStyle = '#8ea1ff';
+    ctx.fillStyle = lightText;
     ctx.font = '18px "Segoe UI", sans-serif';
-    ctx.fillText(url, 420, 280);
+    ctx.fillText(url, 420, 260);
   }
 
-  ctx.fillStyle = '#8c93c9';
+  ctx.fillStyle = mutedText;
   ctx.font = '18px "Segoe UI", sans-serif';
-  ctx.fillText('_Generated via Valorant Agent Wheelspin_', 420, 330);
+  ctx.fillText('_Generated via Valorant Agent Wheelspin_', 420, 305);
 
   return canvas;
 }
@@ -1522,6 +1570,102 @@ function populatePerAgentSettings() {
   });
 }
 
+function populateDebugAgentSelect() {
+  if (!debugAgentSelect) return;
+  const currentValue = debugAgentSelect.value;
+  debugAgentSelect.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  agents.forEach((agent, idx) => {
+    const option = document.createElement('option');
+    option.value = agent.name;
+    option.textContent = agent.name;
+    if (currentValue) {
+      option.selected = agent.name === currentValue;
+    } else if (idx === 0) {
+      option.selected = true;
+    }
+    frag.appendChild(option);
+  });
+  debugAgentSelect.appendChild(frag);
+}
+
+function showDebugPanel() {
+  if (!debugPanel) return;
+  if (debugPanelVisible) return;
+  populateDebugAgentSelect();
+  debugPanel.classList.add('debug-visible');
+  debugPanel.setAttribute('aria-hidden', 'false');
+  debugPanelVisible = true;
+}
+
+function hideDebugPanel() {
+  if (!debugPanel) return;
+  if (!debugPanelVisible) return;
+  debugPanel.classList.remove('debug-visible');
+  debugPanel.setAttribute('aria-hidden', 'true');
+  debugPanelVisible = false;
+}
+
+function shouldIgnoreDebugShortcut(target) {
+  if (!target) return false;
+  const tag = target.tagName ? target.tagName.toLowerCase() : '';
+  if (['input', 'textarea', 'select'].includes(tag)) return true;
+  return !!target.isContentEditable;
+}
+
+function trackDebugSequenceInput(key) {
+  debugKeyBuffer.push(key);
+  if (debugKeyBuffer.length > DEBUG_KEY_SEQUENCE.length) {
+    debugKeyBuffer.shift();
+  }
+  if (debugSequenceTimer) {
+    clearTimeout(debugSequenceTimer);
+    debugSequenceTimer = null;
+  }
+  debugSequenceTimer = setTimeout(() => {
+    debugKeyBuffer = [];
+    debugSequenceTimer = null;
+  }, DEBUG_SEQUENCE_RESET_MS);
+
+  const matches = DEBUG_KEY_SEQUENCE.every((value, idx) => debugKeyBuffer[idx] === value);
+  if (matches) {
+    debugKeyBuffer = [];
+    if (debugSequenceTimer) {
+      clearTimeout(debugSequenceTimer);
+      debugSequenceTimer = null;
+    }
+    showDebugPanel();
+  }
+}
+
+function handleDebugKeydown(event) {
+  if (event.key === 'Escape' && debugPanelVisible) {
+    hideDebugPanel();
+    return;
+  }
+  if (event.metaKey || event.ctrlKey || event.altKey) return;
+  if (!event.key || event.key.length !== 1) return;
+  if (shouldIgnoreDebugShortcut(event.target)) return;
+  trackDebugSequenceInput(event.key);
+}
+
+populateDebugAgentSelect();
+if (debugShowWinnerBtn) {
+  debugShowWinnerBtn.addEventListener('click', () => {
+    const selectedName = debugAgentSelect?.value;
+    const agent = agents.find((a) => a.name === selectedName) || agents[0];
+    if (agent) {
+      openWinnerModalForAgent(agent, { playSound: false, proofPrefix: 'DEBUG' });
+    }
+  });
+}
+if (debugHideBtn) {
+  debugHideBtn.addEventListener('click', () => {
+    hideDebugPanel();
+  });
+}
+document.addEventListener('keydown', handleDebugKeydown);
+
 // Fetch agents from a public Valorant API and populate agent list/colors
 async function loadAgentsFromValorantApi() {
   try {
@@ -1566,6 +1710,7 @@ async function loadAgentsFromValorantApi() {
   prevRel = null;
   drawWheel();
     populatePerAgentSettings();
+    populateDebugAgentSelect();
   } catch (e) {
     console.warn('Failed to load agents from API', e);
   }
