@@ -60,6 +60,11 @@ function openWinnerModalForAgent(agent, options = {}) {
     idlePaused = true;
     winnerModalOpen = true;
     angularVelocity = 0;
+    // Blur only the wheel while the modal is visible
+    try {
+      const wheelContainer = document.getElementById('wheelContainer');
+      if (wheelContainer) wheelContainer.classList.add('blurred');
+    } catch (e) {}
     const focusTarget = closeWinnerBtn || closeWinner;
     if (focusTarget && typeof focusTarget.focus === 'function') {
       try { focusTarget.focus({preventScroll: true}); }
@@ -108,6 +113,11 @@ function closeWinnerModal(options = {}) {
   winnerModal.setAttribute('inert', '');
   idlePaused = false;
   winnerModalOpen = false;
+  // Remove wheel blur once the modal closes
+  try {
+    const wheelContainer = document.getElementById('wheelContainer');
+    if (wheelContainer) wheelContainer.classList.remove('blurred');
+  } catch (e) {}
   lastWinnerAgent = null;
   lastSpinProofId = null;
   try { stopDrumroll(); } catch (e) {}
