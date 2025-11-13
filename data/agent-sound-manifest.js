@@ -173,7 +173,8 @@ window.AGENT_SOUND_MANIFEST = {
     { "label": "\"Take a minute, appreciate the journey. Then we wrap this party up.\"", "path": "assets/sounds/waylay4.mp3" },
     { "label": "\"Absolutely demolished.\"", "path": "assets/sounds/waylay5.mp3" },
     { "label": "\"Don't miss me too much.\"", "path": "assets/sounds/waylay6.mp3" },
-    { "label": "\"I could have sworn we were about to fight, but you fools all look ready for nap time. Be tired later, yeah?\"", "path": "assets/sounds/waylay7.mp3" }
+    { "label": "\"I could have sworn we were about to fight, but you fools all look ready for nap time. Be tired later, yeah?\"", "path": "assets/sounds/waylay7.mp3" },
+    { "label": "\"Shh... The kids are sleeping.\"", "path": "assets/sounds/waylay8.mp3" },
   ],
   "yoru": [
     { "label": "Default: \"Class dismissed.\"", "path": "assets/sounds/yoru.mp3" },
