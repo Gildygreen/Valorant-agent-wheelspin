@@ -60,127 +60,127 @@ window.AGENT_SOUND_MANIFEST = {
   "harbor": [
     { "label": "Default:\"After this, the first round of chai is on me.\"", "path": "assets/sounds/harbor.mp3" },
     { "label": "*laughs* \"Loosen up. It's only life or death.\"", "path": "assets/sounds/harbor2.mp3" },
-    { "label": "\"Option 3\"", "path": "assets/sounds/harbor3.mp3" }
+    { "label": "*laughs* \"Amateurs.\"", "path": "assets/sounds/harbor3.mp3" }
   ],
   "iso": [
-    { "label": "Default", "path": "assets/sounds/iso.mp3" },
-    { "label": "Option 2", "path": "assets/sounds/iso2.mp3" },
-    { "label": "Option 3", "path": "assets/sounds/iso3.mp3" },
-    { "label": "Option 4", "path": "assets/sounds/iso4.mp3" },
-    { "label": "Option 5", "path": "assets/sounds/iso5.mp3" }
+    { "label": "Default: \"I didn't bring a snack... Did anyone bring a snack?\"", "path": "assets/sounds/iso.mp3" },
+    { "label": "*sigh* \"I was sweating.\"", "path": "assets/sounds/iso2.mp3" },
+    { "label": "\"One minute, finding a playlist.\" *hums* \"Ah, perfect.\"", "path": "assets/sounds/iso3.mp3" },
+    { "label": "\"Five on five? I prefer one on one, but don't worry, this is good too.\"", "path": "assets/sounds/iso4.mp3" },
+    { "label": "\"I have time for a selfie before we leave, right? I'll be fast.\"", "path": "assets/sounds/iso5.mp3" }
   ],
   "jett": [
-    { "label": "Default", "path": "assets/sounds/jett.mp3" },
-    { "label": "Option 2", "path": "assets/sounds/jett2.mp3" },
-    { "label": "Option 3", "path": "assets/sounds/jett3.mp3" }
+    { "label": "Default: \"There you are, you little shit.\"", "path": "assets/sounds/jett.mp3" },
+    { "label": "\"Snack time! Mmm, sorry, only brought enough for me.\"", "path": "assets/sounds/jett2.mp3" },
+    { "label": "\"I'm hungry. Anyone hungry? Lunch on Brimstone after this.\"", "path": "assets/sounds/jett3.mp3" }
   ],
   "kayo": [
-    { "label": "Default", "path": "assets/sounds/kayo.mp3" },
-    { "label": "Option 2", "path": "assets/sounds/kayo2.mp3" },
-    { "label": "Option 3", "path": "assets/sounds/kayo3.mp3" }
+    { "label": "Default: \"You want a piece of this?\"", "path": "assets/sounds/kayo.mp3" },
+    { "label": "\"Cancelled.\"", "path": "assets/sounds/kayo2.mp3" },
+    { "label": "\"Gottem.\"", "path": "assets/sounds/kayo3.mp3" }
   ],
   "killjoy": [
-    { "label": "Default", "path": "assets/sounds/killjoy.mp3" },
-    { "label": "Option 2", "path": "assets/sounds/killjoy2.mp3" },
-    { "label": "Option 3", "path": "assets/sounds/killjoy3.mp3" },
-    { "label": "Option 4", "path": "assets/sounds/killjoy4.mp3" },
-    { "label": "Option 5", "path": "assets/sounds/killjoy5.mp3" }
+    { "label": "Default: \"Let's make this extraction quick. After this, I'm going clubbing five time zones away, and a girl needs a moment to change.\"", "path": "assets/sounds/killjoy.mp3" },
+    { "label": "\"Don't stress if I die, it was great knowing you all. Also, delete my hard drive.\"", "path": "assets/sounds/killjoy2.mp3" },
+    { "label": "\"Swarm grenades, check. Killer robots, check. Oh, hah, they're only killer when I say so.\"", "path": "assets/sounds/killjoy3.mp3" },
+    { "label": "\"Oh, oh, what if I sabotage their defuser to speed up the timer instead. Oh man, how funny would that be?\"", "path": "assets/sounds/killjoy4.mp3" },
+    { "label": "\"Stealing our radianite is one thing, but I swear if they touch my coffee mug collection, I will erase them from existence.\"", "path": "assets/sounds/killjoy5.mp3" }
   ],
   "neon": [
-    { "label": "Default", "path": "assets/sounds/neon.mp3" },
-    { "label": "Option 2", "path": "assets/sounds/neon2.mp3" },
-    { "label": "Option 3", "path": "assets/sounds/neon3.mp3" }
+    { "label": "Default: \"Get rekt!\"", "path": "assets/sounds/neon.mp3" },
+    { "label": "\"Are you kidding me right now?\"", "path": "assets/sounds/neon2.mp3" },
+    { "label": "\"Yup.\"", "path": "assets/sounds/neon3.mp3" }
   ],
   "omen": [
-    { "label": "Default", "path": "assets/sounds/omen.mp3" },
-    { "label": "Option 2", "path": "assets/sounds/omen2.mp3" }
+    { "label": "Default: \"Boo.\"", "path": "assets/sounds/omen.mp3" },
+    { "label": "*grunts*", "path": "assets/sounds/omen2.mp3" }
   ],
   "phoenix": [
-    { "label": "Default", "path": "assets/sounds/phoenix.mp3" },
-    { "label": "Option 2", "path": "assets/sounds/phoenix2.mp3" },
-    { "label": "Option 3", "path": "assets/sounds/phoenix3.mp3" },
-    { "label": "Option 4", "path": "assets/sounds/phoenix4.mp3" },
-    { "label": "Option 5", "path": "assets/sounds/phoenix5.mp3" },
-    { "label": "Option 6", "path": "assets/sounds/phoenix6.mp3" }
+    { "label": "Default: \"Yes, yes, it's me. Autographs if we survive, yeah?\"", "path": "assets/sounds/phoenix.mp3" },
+    { "label": "\"Okay, we out! Gonna go crawl under some blankets now.\"", "path": "assets/sounds/phoenix2.mp3" },
+    { "label": "\"Skrrr!\"", "path": "assets/sounds/phoenix3.mp3" },
+    { "label": "\"Pressure? Makes diamonds, baby.\"", "path": "assets/sounds/phoenix4.mp3" },
+    { "label": "\"Remember, stay out of the fire. Super high level tactic, remember that, yeah?\"", "path": "assets/sounds/phoenix5.mp3" },
+    { "label": "\"Buy stuff, ka-ching, lil' skrrr, then we're done, yeah?\"", "path": "assets/sounds/phoenix6.mp3" }
   ],
   "raze": [
-    { "label": "Default", "path": "assets/sounds/raze.mp3" },
-    { "label": "Option 2", "path": "assets/sounds/raze2.mp3" },
-    { "label": "Option 3", "path": "assets/sounds/raze3.mp3" }
+    { "label": "Default: \"Okay! Who's got the snacks?\"", "path": "assets/sounds/raze.mp3" },
+    { "label": "\"Wait, what? I'm listening to music, let me just- You say something? What did you say?\"", "path": "assets/sounds/raze2.mp3" },
+    { "label": "\"Boom!\"", "path": "assets/sounds/raze3.mp3" }
   ],
   "reyna": [
-    { "label": "Default", "path": "assets/sounds/reyna.mp3" },
-    { "label": "Option 2", "path": "assets/sounds/reyna2.mp3" },
-    { "label": "Option 3", "path": "assets/sounds/reyna3.mp3" },
-    { "label": "Option 4", "path": "assets/sounds/reyna4.mp3" },
-    { "label": "Option 5", "path": "assets/sounds/reyna5.mp3" }
+    { "label": "Default: \"Hello, darling.\"", "path": "assets/sounds/reyna.mp3" },
+    { "label": "\"Embarrassing.\"", "path": "assets/sounds/reyna2.mp3" },
+    { "label": "\"Shoo.\"", "path": "assets/sounds/reyna3.mp3" },
+    { "label": "\"I'll send flowers.\"", "path": "assets/sounds/reyna4.mp3" },
+    { "label": "*laughs*", "path": "assets/sounds/reyna5.mp3" }
   ],
   "sage": [
-    { "label": "Default", "path": "assets/sounds/sage.mp3" },
-    { "label": "Option 2", "path": "assets/sounds/sage2.mp3" },
-    { "label": "Option 3", "path": "assets/sounds/sage3.mp3" }
+    { "label": "Default: \"Hello.\"", "path": "assets/sounds/sage.mp3" },
+    { "label": "\"I'm satisfied.\"", "path": "assets/sounds/sage2.mp3" },
+    { "label": "\"You are a boulder. I am a mountain!\"", "path": "assets/sounds/sage3.mp3" }
   ],
   "skye": [
-    { "label": "Default", "path": "assets/sounds/skye.mp3" },
-    { "label": "Option 2", "path": "assets/sounds/skye2.mp3" },
-    { "label": "Option 3", "path": "assets/sounds/skye3.mp3" },
-    { "label": "Option 4", "path": "assets/sounds/skye4.mp3" },
-    { "label": "Option 5", "path": "assets/sounds/skye5.mp3" },
-    { "label": "Option 6", "path": "assets/sounds/skye6.mp3" },
-    { "label": "Option 7", "path": "assets/sounds/skye7.mp3" },
-    { "label": "Option 8", "path": "assets/sounds/skye8.mp3" }
+    { "label": "Default: \"Pull your socks up!\"", "path": "assets/sounds/skye.mp3" },
+    { "label": "\"See ya, buddy.\"", "path": "assets/sounds/skye2.mp3" },
+    { "label": "\"'Night.\"", "path": "assets/sounds/skye3.mp3" },
+    { "label": "\"Piss off!\"", "path": "assets/sounds/skye4.mp3" },
+    { "label": "\"Hawk out!\"", "path": "assets/sounds/skye5.mp3" },
+    { "label": "\"Nice try, mate.\"", "path": "assets/sounds/skye6.mp3" },
+    { "label": "\"Shit, I'm buggered.\"", "path": "assets/sounds/skye7.mp3" },
+    { "label": "\"Good on ya!\"", "path": "assets/sounds/skye8.mp3" }
   ],
   "sova": [
-    { "label": "Default", "path": "assets/sounds/sova.mp3" },
-    { "label": "Option 2", "path": "assets/sounds/sova2.mp3" },
-    { "label": "Option 3", "path": "assets/sounds/sova3.mp3" },
-    { "label": "Option 4", "path": "assets/sounds/sova4.mp3" },
-    { "label": "Option 5", "path": "assets/sounds/sova5.mp3" },
-    { "label": "Option 6", "path": "assets/sounds/sova6.mp3" }
+    { "label": "Default: \"My quiver is never full.\"", "path": "assets/sounds/sova.mp3" },
+    { "label": "\"Quiet now.\"", "path": "assets/sounds/sova2.mp3" },
+    { "label": "\"Come into the unknown!\"", "path": "assets/sounds/sova3.mp3" },
+    { "label": "\"I love you all.\"", "path": "assets/sounds/sova4.mp3" },
+    { "label": "\"Hello.\"", "path": "assets/sounds/sova5.mp3" },
+    { "label": "\"I have money.\"", "path": "assets/sounds/sova6.mp3" }
   ],
   "tejo": [
-    { "label": "Default", "path": "assets/sounds/tejo.mp3" },
-    { "label": "Option 2", "path": "assets/sounds/tejo2.mp3" },
-    { "label": "Option 3", "path": "assets/sounds/tejo3.mp3" }
+    { "label": "Default: \"Que nota. Now, let's get something to eat.\"", "path": "assets/sounds/tejo.mp3" },
+    { "label": "\"Seems like I'm the better one.\"", "path": "assets/sounds/tejo2.mp3" },
+    { "label": "\"Mmmhm.\"", "path": "assets/sounds/tejo3.mp3" }
   ],
   "veto": [
-    { "label": "Default", "path": "assets/sounds/veto.mp3" },
-    { "label": "Option 2", "path": "assets/sounds/veto2.mp3" },
-    { "label": "Option 3", "path": "assets/sounds/veto3.mp3" },
-    { "label": "Option 4", "path": "assets/sounds/veto4.mp3" }
+    { "label": "Default: \"Sorry, mama. I have to kill people today.\"", "path": "assets/sounds/veto.mp3" },
+    { "label": "\"Now to find a meal. What's the local specialty?\"", "path": "assets/sounds/veto2.mp3" },
+    { "label": "*Tsk* \"Ngaka be.\"", "path": "assets/sounds/veto3.mp3" },
+    { "label": "\"Lights out, friend.\"", "path": "assets/sounds/veto4.mp3" }
   ],
   "viper": [
-    { "label": "Default", "path": "assets/sounds/viper.mp3" },
-    { "label": "Option 2", "path": "assets/sounds/viper2.mp3" },
-    { "label": "Option 3", "path": "assets/sounds/viper3.mp3" },
-    { "label": "Option 4", "path": "assets/sounds/viper4.mp3" },
-    { "label": "Option 5", "path": "assets/sounds/viper5.mp3" },
-    { "label": "Option 6", "path": "assets/sounds/viper6.mp3" },
-    { "label": "Option 7", "path": "assets/sounds/viper7.mp3" }
+    { "label": "Default: \"Come.\"", "path": "assets/sounds/viper.mp3" },
+    { "label": "\"They call me a monster. Shall I prove them right?\"", "path": "assets/sounds/viper2.mp3" },
+    { "label": "\"Get some sleep, old man.\"", "path": "assets/sounds/viper3.mp3" },
+    { "label": "\"Goodbye.\"", "path": "assets/sounds/viper4.mp3" },
+    { "label": "\"Back where you belong. In the dirt. \"", "path": "assets/sounds/viper5.mp3" },
+    { "label": "\"Make them beg.\"", "path": "assets/sounds/viper6.mp3" },
+    { "label": "\"Time to kneel.\"", "path": "assets/sounds/viper7.mp3" }
   ],
   "vyse": [
-    { "label": "Default", "path": "assets/sounds/vyse.mp3" },
-    { "label": "Option 2", "path": "assets/sounds/vyse2.mp3" },
-    { "label": "Option 3", "path": "assets/sounds/vyse3.mp3" },
-    { "label": "Option 4", "path": "assets/sounds/vyse4.mp3" },
-    { "label": "Option 5", "path": "assets/sounds/vyse5.mp3" },
-    { "label": "Option 6", "path": "assets/sounds/vyse6.mp3" }
+    { "label": "Default: \"Sorry, little guy.\"", "path": "assets/sounds/vyse.mp3" },
+    { "label": "\"I deserve this. We...deserve this. \"", "path": "assets/sounds/vyse2.mp3" },
+    { "label": "\"Has been.\"", "path": "assets/sounds/vyse3.mp3" },
+    { "label": "\"Good, aren't I?\"", "path": "assets/sounds/vyse4.mp3" },
+    { "label": "\"Who do you think you are?\"", "path": "assets/sounds/vyse5.mp3" },
+    { "label": "\"Irrelevant.\"", "path": "assets/sounds/vyse6.mp3" }
   ],
   "waylay": [
-    { "label": "Default", "path": "assets/sounds/waylay.mp3" },
-    { "label": "Option 2", "path": "assets/sounds/waylay2.mp3" },
-    { "label": "Option 3", "path": "assets/sounds/waylay3.mp3" },
-    { "label": "Option 4", "path": "assets/sounds/waylay4.mp3" },
-    { "label": "Option 5", "path": "assets/sounds/waylay5.mp3" },
-    { "label": "Option 6", "path": "assets/sounds/waylay6.mp3" },
-    { "label": "Option 7", "path": "assets/sounds/waylay7.mp3" }
+    { "label": "Default: \"Remember, if I spot any of you being stupid out there, I will kick your ass when we get back. And I kick hard.\"", "path": "assets/sounds/waylay.mp3" },
+    { "label": "\"That's a dumb way to die.\"", "path": "assets/sounds/waylay2.mp3" },
+    { "label": "\"Not so fancy, now, huh?\"", "path": "assets/sounds/waylay3.mp3" },
+    { "label": "\"Take a minute, appreciate the journey. Then we wrap this party up.\"", "path": "assets/sounds/waylay4.mp3" },
+    { "label": "\"Absolutely demolished.\"", "path": "assets/sounds/waylay5.mp3" },
+    { "label": "\"Don't miss me too much.\"", "path": "assets/sounds/waylay6.mp3" },
+    { "label": "\"I could have sworn we were about to fight, but you fools all look ready for nap time. Be tired later, yeah?\"", "path": "assets/sounds/waylay7.mp3" }
   ],
   "yoru": [
-    { "label": "Default", "path": "assets/sounds/yoru.mp3" },
-    { "label": "Option 2", "path": "assets/sounds/yoru2.mp3" },
-    { "label": "Option 3", "path": "assets/sounds/yoru3.mp3" },
-    { "label": "Option 4", "path": "assets/sounds/yoru4.mp3" },
-    { "label": "Option 5", "path": "assets/sounds/yoru5.mp3" },
-    { "label": "Option 6", "path": "assets/sounds/yoru6.mp3" }
+    { "label": "Default: \"Class dismissed.\"", "path": "assets/sounds/yoru.mp3" },
+    { "label": "\"So much fuzz over nothing. Someone get me a bat, I'll finish this.\"", "path": "assets/sounds/yoru2.mp3" },
+    { "label": "\"I'm leaving now. See you at the next apocalypse.\"", "path": "assets/sounds/yoru3.mp3" },
+    { "label": "\"Embarrassing.\"", "path": "assets/sounds/yoru4.mp3" },
+    { "label": "\"うるせんだよ\"", "path": "assets/sounds/yoru5.mp3" },
+    { "label": "\"Spend your money now. There's no bank in hell.\"", "path": "assets/sounds/yoru6.mp3" }
   ]
 };
