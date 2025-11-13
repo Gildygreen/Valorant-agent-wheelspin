@@ -133,15 +133,18 @@ function applyManifestSounds(agent) {
   const key = manifestKeyFromAgent(agent);
   if (!key || !soundManifest[key] || !soundManifest[key].length) return false;
   const entries = soundManifest[key];
-  const sounds = entries.map((path, idx) => ({
-    label: typeof path === 'object'
-      ? (path.label || (idx === 0 ? 'Default' : `Option ${idx + 1}`))
-      : (idx === 0 ? 'Default' : `Option ${idx + 1}`),
-    path: typeof path === 'object' ? path.path : path,
-    path,
-    isDefault: idx === 0,
-    enabled: isAgentSoundEnabled(agent.name, path, idx === 0),
-  }));
+  const sounds = entries.map((entry, idx) => {
+    const entryPath = typeof entry === 'object' ? entry.path : entry;
+    const entryLabel = typeof entry === 'object'
+      ? (entry.label || (idx === 0 ? 'Default' : `Option ${idx + 1}`))
+      : (idx === 0 ? 'Default' : `Option ${idx + 1}`);
+    return {
+      label: entryLabel,
+      path: entryPath,
+      isDefault: idx === 0,
+      enabled: isAgentSoundEnabled(agent.name, entryPath, idx === 0),
+    };
+  });
   agent.winSounds = sounds;
   sounds.forEach((s) => preloadAudioSource(s.path));
   return true;
