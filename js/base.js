@@ -196,6 +196,19 @@ function isMobileViewport() {
   }
 }
 
+// Safety: ensure the loading overlay never hangs indefinitely
+(function preventStuckLoadingOverlay() {
+  try {
+    const SAFETY_TIMEOUT_MS = 5000;
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        try { if (!wheelAssetsReady) markWheelAssetsReady(); } catch (e) {}
+        try { if (!centerIconReady) markCenterIconReady(); } catch (e) {}
+      }, SAFETY_TIMEOUT_MS);
+    });
+  } catch (e) {}
+})();
+
 // Small helper: convert RGB to hex
 function rgbToHex(r, g, b) {
   return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');

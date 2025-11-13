@@ -273,14 +273,22 @@ function loadCenterIcon() {
       centerIcon.crossOrigin = 'Anonymous';
     }
     centerIcon.src = 'assets/images/icon.png';
+    let settled = false;
+    const settle = () => {
+      if (settled) return;
+      settled = true;
+      try { markCenterIconReady(); } catch (e) {}
+    };
     centerIcon.onload = () => {
       drawWheel();
-      try { markCenterIconReady(); } catch (e) {}
+      settle();
     };
     centerIcon.onerror = () => {
       console.warn('Failed to load center icon from: assets/images/icon.png');
-      try { markCenterIconReady(); } catch (e) {}
+      settle();
     };
+    // Fallback: if neither load nor error fires promptly, unblock UI after a short timeout
+    setTimeout(() => { settle(); }, 3000);
   } catch (e) {
     console.warn('Error loading center icon:', e);
     try { markCenterIconReady(); } catch (err) {}
