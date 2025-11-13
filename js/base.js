@@ -166,6 +166,19 @@ const centerIconMinMobilePx = 110;
   });
 })();
 
+// OBS/overlay mode: allow hiding UI like modals in broadcast/browser sources
+(function setupOverlayModeClass() {
+  try {
+    const url = new URL(window.location.href);
+    const qp = url.searchParams;
+    const hash = (url.hash || '').toLowerCase();
+    const isOverlay = qp.has('overlay') || qp.get('obs') === '1' || hash.includes('overlay');
+    if (isOverlay && document?.body?.classList) {
+      document.body.classList.add('obs-overlay');
+    }
+  } catch (e) { /* ignore */ }
+})();
+
 function hideLoadingOverlay() {
   if (wheelContainerEl) wheelContainerEl.classList.remove('loading');
   if (!wheelLoading) return;

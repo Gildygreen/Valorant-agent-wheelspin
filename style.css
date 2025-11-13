@@ -13,6 +13,15 @@ body {
 body.modal-open #roleFilterBar { display: none; }
 /* Also hide role filter bar while team feed is visible */
 body.team-feed-visible #roleFilterBar { display: none; }
+/* In overlay/OBS mode, suppress UI modals even if open */
+body.obs-overlay #teamsModal { display: none !important; }
+body.obs-overlay #settingsModal { display: none !important; }
+/* In overlay mode, remove blur and shadows when modals are open */
+body.obs-overlay #wheelContainer.blurred canvas { filter: none !important; }
+body.obs-overlay #winnerModal .modal-content { box-shadow: none !important; border: none !important; }
+body.obs-overlay #winnerModal .modal-content::before,
+body.obs-overlay #winnerModal .modal-content::after { content: none !important; }
+body.obs-overlay #winnerModal .modal-button { box-shadow: none !important; }
 
 /* Left role filter bar */
 #roleFilterBar {
