@@ -1,12 +1,12 @@
 // UI wiring and initialization
 const tickEnabledToggle = document.getElementById('tickEnabledToggle');
 const tickVolumeRange = document.getElementById('tickVolumeRange');
-const tickOffsetRange = document.getElementById('tickOffsetRange');
-const tickOffsetLabel = document.getElementById('tickOffsetLabel');
 const drumrollEnabledToggle = document.getElementById('drumrollEnabledToggle');
 const drumrollVolumeRange = document.getElementById('drumrollVolumeRange');
+const drumrollVolumeLabel = document.getElementById('drumrollVolumeLabel');
 const agentWinVolumeRange = document.getElementById('agentWinVolumeRange');
 const agentWinVolumeLabel = document.getElementById('agentVolumeLabel');
+const tickVolumeLabel = document.getElementById('tickVolumeLabel');
 
 if (shareWinnerBtn) {
   shareWinnerBtn.disabled = true;
@@ -37,6 +37,9 @@ if (randomizeWinSoundsToggle) {
     if (typeof applyRandomizeSoundRules === 'function') {
       applyRandomizeSoundRules();
     }
+    if (typeof updatePerAgentSectionVisibility === 'function') {
+      updatePerAgentSectionVisibility();
+    }
     populatePerAgentSettings();
   });
 }
@@ -51,22 +54,14 @@ if (tickEnabledToggle) {
 }
 if (tickVolumeRange) {
   tickVolumeRange.value = tickVolume;
+  if (tickVolumeLabel) tickVolumeLabel.textContent = Math.round(tickVolume * 100) + '%';
   tickVolumeRange.addEventListener('input', (e) => {
     const v = parseFloat(e.target.value);
-    tickVolume = isNaN(v) ? 0.9 : v;
+    tickVolume = isNaN(v) ? 0.5 : v;
     localStorage.setItem('tickVolume', String(tickVolume));
     // apply to fallback audio if present
     try { if (fallbackTickAudio) fallbackTickAudio.volume = tickVolume; } catch (e) {}
-  });
-}
-if (tickOffsetRange) {
-  tickOffsetRange.value = tickOffsetMs;
-  if (tickOffsetLabel) tickOffsetLabel.textContent = tickOffsetMs + ' ms';
-  tickOffsetRange.addEventListener('input', (e) => {
-    const v = parseInt(e.target.value, 10);
-    tickOffsetMs = isNaN(v) ? 0 : v;
-    localStorage.setItem('tickOffsetMs', String(tickOffsetMs));
-    if (tickOffsetLabel) tickOffsetLabel.textContent = tickOffsetMs + ' ms';
+    if (tickVolumeLabel) tickVolumeLabel.textContent = Math.round(tickVolume * 100) + '%';
   });
 }
 // Drumroll settings wiring
@@ -79,9 +74,10 @@ if (drumrollEnabledToggle) {
 }
 if (drumrollVolumeRange) {
   drumrollVolumeRange.value = drumVolume;
+  if (drumrollVolumeLabel) drumrollVolumeLabel.textContent = Math.round(drumVolume * 100) + '%';
   drumrollVolumeRange.addEventListener('input', (e) => {
     const v = parseFloat(e.target.value);
-    drumVolume = isNaN(v) ? 0.9 : v;
+    drumVolume = isNaN(v) ? 0.5 : v;
     localStorage.setItem('drumVolume', String(drumVolume));
     try { if (fallbackDrumAudio) fallbackDrumAudio.volume = drumVolume; } catch (e) {}
     // apply to active drum sources if playing
@@ -90,6 +86,7 @@ if (drumrollVolumeRange) {
         for (const s of drumSources) { s.gain.gain.value = drumVolume; }
       }
     } catch (e) {}
+    if (drumrollVolumeLabel) drumrollVolumeLabel.textContent = Math.round(drumVolume * 100) + '%';
   });
 }
 
@@ -98,7 +95,7 @@ if (agentWinVolumeRange) {
   if (agentWinVolumeLabel) agentWinVolumeLabel.textContent = Math.round(agentWinVolume * 100) + '%';
   agentWinVolumeRange.addEventListener('input', (e) => {
     const v = parseFloat(e.target.value);
-    agentWinVolume = isNaN(v) ? 0.9 : v;
+    agentWinVolume = isNaN(v) ? 0.5 : v;
     localStorage.setItem('agentWinVolume', String(agentWinVolume));
     if (agentWinVolumeLabel) agentWinVolumeLabel.textContent = Math.round(agentWinVolume * 100) + '%';
   });

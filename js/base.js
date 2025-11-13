@@ -17,6 +17,7 @@ const settingsBtn = document.getElementById('settingsBtn');
 const settingsModal = document.getElementById('settingsModal');
 const closeSettings = document.getElementById('closeSettings');
 const perAgentSettingsDiv = document.getElementById('perAgentSettings');
+const perAgentSection = document.getElementById('perAgentSection');
 const debugPanel = document.getElementById('debugPanel');
 const debugAgentSelect = document.getElementById('debugAgentSelect');
 const debugShowWinnerBtn = document.getElementById('debugShowWinnerBtn');
@@ -26,15 +27,30 @@ const wheelLoading = document.getElementById('wheelLoading');
 let wheelAssetsReady = false;
 let centerIconReady = false;
 
+function getStoredBoolean(key, fallback) {
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored === null) return fallback;
+    return JSON.parse(stored);
+  } catch (e) {
+    return fallback;
+  }
+}
+
+function getStoredNumber(key, fallback) {
+  const stored = localStorage.getItem(key);
+  if (stored === null) return fallback;
+  const value = parseFloat(stored);
+  return isNaN(value) ? fallback : value;
+}
+
 // Store user preferences
-let randomizeWinSounds = JSON.parse(localStorage.getItem('randomizeWinSounds')) ?? false;
-let agentWinVolume = parseFloat(localStorage.getItem('agentWinVolume'));
-if (isNaN(agentWinVolume)) agentWinVolume = 0.9;
+let randomizeWinSounds = getStoredBoolean('randomizeWinSounds', true);
+let agentWinVolume = getStoredNumber('agentWinVolume', 0.5);
 
 // Tick sound preferences
-let tickEnabled = JSON.parse(localStorage.getItem('tickEnabled')) ?? true;
-let tickVolume = parseFloat(localStorage.getItem('tickVolume'));
-if (isNaN(tickVolume)) tickVolume = 0.9;
+let tickEnabled = getStoredBoolean('tickEnabled', true);
+let tickVolume = getStoredNumber('tickVolume', 0.5);
 
 let startAngle = 0;
 let spinning = false;
@@ -46,7 +62,7 @@ let lastFrameTs = null;
 let spinTriggered = false;
 let idlePaused = false; // when true, idle rotation is suspended (e.g., while winner modal is open)
 let winnerModalOpen = false;
-const DEBUG_KEY_SEQUENCE = ['q', 'h', 'd', 's'];
+const DEBUG_KEY_SEQUENCE = ['h', 'e', 's', 'o', 'y', 'a', 'm'];
 const DEBUG_SEQUENCE_RESET_MS = 1800;
 let debugKeyBuffer = [];
 let debugSequenceTimer = null;
@@ -90,9 +106,8 @@ if (isNaN(tickOffsetMs)) tickOffsetMs = 0;
 // Drumroll audio resources
 let drumBuffer = null;
 let fallbackDrumAudio = null;
-let drumEnabled = JSON.parse(localStorage.getItem('drumEnabled')) ?? true;
-let drumVolume = parseFloat(localStorage.getItem('drumVolume'));
-if (isNaN(drumVolume)) drumVolume = 0.9;
+let drumEnabled = getStoredBoolean('drumEnabled', true);
+let drumVolume = getStoredNumber('drumVolume', 0.5);
 let drumLeadMs = 2200; // how long before selection to start drumroll
 let drumScheduled = false;
 let drumSources = []; // active AudioBufferSourceNodes or timeouts for fallback
@@ -155,6 +170,14 @@ window.revealLoadingGatedUi = function revealLoadingGatedUi() {
     el.classList.add('ready');
   });
 };
+
+window.updatePerAgentSectionVisibility = function updatePerAgentSectionVisibility() {
+  if (!perAgentSection) return;
+  if (randomizeWinSounds) perAgentSection.classList.remove('hidden');
+  else perAgentSection.classList.add('hidden');
+};
+
+window.updatePerAgentSectionVisibility();
 
 function isMobileViewport() {
   try {
