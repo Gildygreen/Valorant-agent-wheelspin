@@ -32,6 +32,7 @@ const teamNewBtn = document.getElementById('teamNewBtn');
 const teamSaveBtn = document.getElementById('teamSaveBtn');
 const teamDeleteBtn = document.getElementById('teamDeleteBtn');
 const teamRollBtn = document.getElementById('teamRollBtn');
+const teamRollHint = document.getElementById('teamRollHint');
 const teamResults = document.getElementById('teamResults');
 const teamFeed = document.getElementById('teamFeed');
 const teamCopyProofBtn = document.getElementById('teamCopyProofBtn');
@@ -355,6 +356,7 @@ if (savedTeamsSelect) {
       populateFormFromTeam(teams[idx]);
     }
     try { localStorage.setItem('savedTeamsSelectedIndex', String(isNaN(idx) ? '' : idx)); } catch (e) {}
+    try { updateTeamRollButtonState(); } catch (e) {}
   });
 }
 if (teamNewBtn) {
@@ -401,6 +403,89 @@ function agentsByRole(role) {
     }
     return out;
   } catch (e) { return []; }
+}
+
+// Evaluate whether the current team configuration can be satisfied with the
+// enabled agents and filters. Returns an object with:
+// { ok: boolean, shortages: [{role, need, have}], totalShort: boolean, totalAvailable, totalNeeded }.
+function evaluateTeamRollFeasibility() {
+  try {
+    const size = getTeamSize();
+    if (!size || size <= 0) {
+      return { ok: false, shortages: [], totalShort: true, totalAvailable: 0, totalNeeded: 0 };
+    }
+
+    // Build role demand from either the composition inputs (when randomizing)
+    // or from explicit per-player roles.
+    const roleDemand = {
+      Controller: 0,
+      Duelist: 0,
+      Initiator: 0,
+      Sentinel: 0,
+    };
+
+    const randomize = !!(teamRandomizeRoles && teamRandomizeRoles.checked);
+    if (randomize) {
+      const comp = getRoleComposition();
+      ['Controller', 'Duelist', 'Initiator', 'Sentinel'].forEach((role) => {
+        roleDemand[role] = Math.max(0, parseInt(comp?.[role] || 0, 10) || 0);
+      });
+    } else if (teamPlayersContainer) {
+      const rows = Array.from(teamPlayersContainer.querySelectorAll('.team-player-row')).slice(0, size);
+      rows.forEach((row) => {
+        const role = (row.querySelector('.team-player-role')?.value || '').trim();
+        if (!role || role === 'Any') return;
+        if (roleDemand.hasOwnProperty(role)) {
+          roleDemand[role] += 1;
+        }
+      });
+    }
+
+    // Count available agents after exclusions/filters.
+    let allList = (typeof allAgents !== 'undefined' ? allAgents : agents) || [];
+    if (typeof isAgentExcluded === 'function') {
+      allList = allList.filter((a) => !isAgentExcluded(a));
+    }
+    const totalAvailable = allList.length;
+    const totalNeeded = size;
+
+    const rolesOrderCheck = ['Controller', 'Duelist', 'Initiator', 'Sentinel'];
+    const shortages = [];
+    rolesOrderCheck.forEach((role) => {
+      const need = roleDemand[role] || 0;
+      if (!need) return;
+      const supply = (agentsByRole(role) || []).length;
+      if (supply < need) {
+        shortages.push({ role, need, have: supply });
+      }
+    });
+    const totalShort = totalAvailable < totalNeeded;
+
+    const ok = !shortages.length && !totalShort;
+    return { ok, shortages, totalShort, totalAvailable, totalNeeded };
+  } catch (e) {
+    return { ok: true, shortages: [], totalShort: false, totalAvailable: 0, totalNeeded: 0 };
+  }
+}
+
+function updateTeamRollButtonState() {
+  if (!teamRollBtn) return;
+  const { ok, shortages, totalShort, totalAvailable, totalNeeded } = evaluateTeamRollFeasibility();
+
+  if (ok) {
+    teamRollBtn.disabled = false;
+    if (teamRollHint) {
+      teamRollHint.textContent = '';
+      teamRollHint.classList.remove('team-roll-hint--error');
+    }
+    return;
+  }
+
+  teamRollBtn.disabled = true;
+  if (teamRollHint) {
+    teamRollHint.classList.add('team-roll-hint--error');
+    teamRollHint.textContent = 'Not enough agents enabled for this team composition.';
+  }
 }
 
 function shuffle(arr) {
@@ -564,6 +649,8 @@ if (teamRollBtn) {
     // Close the team modal before rolling
     try { if (teamsModalEl) teamsModalEl.setAttribute('aria-hidden', 'true'); } catch (e) {}
     try { if (typeof refreshModalOpenClass === 'function') refreshModalOpenClass(); } catch (e) {}
+    // If the button is disabled due to an invalid composition, do nothing.
+    if (teamRollBtn.disabled) return;
     await animatedTeamRoll(team, randomize);
   });
 }
@@ -586,6 +673,7 @@ function setRoleComposition(comp) {
   try { if (compInitiator) compInitiator.value = clampInt(comp?.Initiator, 0, 5); } catch (e) {}
   try { if (compSentinel) compSentinel.value = clampInt(comp?.Sentinel, 0, 5); } catch (e) {}
   try { updateCompInputsMax(); enforceCompSum(); } catch (e) {}
+  try { updateTeamRollButtonState(); } catch (e) {}
 }
 
 function getTeamSize() {
@@ -610,6 +698,7 @@ function updatePlayerRowsForTeamSize() {
     });
     // Keep role visibility consistent with randomize toggle
     try { updateTeamRolesVisibility(); } catch (e) {}
+    try { updateTeamRollButtonState(); } catch (e) {}
   } catch (e) {}
 }
 
@@ -646,10 +735,20 @@ function enforceCompSum(changedInput) {
 if (teamSizeInput) {
   teamSizeInput.addEventListener('input', () => { updatePlayerRowsForTeamSize(); updateCompInputsMax(); enforceCompSum(); });
 }
-if (compController) compController.addEventListener('input', (e) => enforceCompSum(e.target));
-if (compDuelist) compDuelist.addEventListener('input', (e) => enforceCompSum(e.target));
-if (compInitiator) compInitiator.addEventListener('input', (e) => enforceCompSum(e.target));
-if (compSentinel) compSentinel.addEventListener('input', (e) => enforceCompSum(e.target));
+if (compController) compController.addEventListener('input', (e) => { enforceCompSum(e.target); try { updateTeamRollButtonState(); } catch (err) {} });
+if (compDuelist) compDuelist.addEventListener('input', (e) => { enforceCompSum(e.target); try { updateTeamRollButtonState(); } catch (err) {} });
+if (compInitiator) compInitiator.addEventListener('input', (e) => { enforceCompSum(e.target); try { updateTeamRollButtonState(); } catch (err) {} });
+if (compSentinel) compSentinel.addEventListener('input', (e) => { enforceCompSum(e.target); try { updateTeamRollButtonState(); } catch (err) {} });
+
+if (teamPlayersContainer) {
+  try {
+    teamPlayersContainer.querySelectorAll('.team-player-role').forEach((sel) => {
+      sel.addEventListener('change', () => {
+        try { updateTeamRollButtonState(); } catch (e) {}
+      });
+    });
+  } catch (e) {}
+}
 
 // Animated team roll using the main spinning wheel
 async function animatedTeamRoll(team, randomizeRolesFlag) {
@@ -710,8 +809,15 @@ async function animatedTeamRoll(team, randomizeRolesFlag) {
         if (players[i].role) players[i].role = roles[r++] || players[i].role;
       }
     }
-    // Randomize the spin order of players for this run
-    shuffle(players);
+
+    // Randomize the spin order of players for this run, but always give
+    // precedence to players with a concrete role over "Any" so constrained
+    // categories (e.g., Duelist) are filled before Any players are considered.
+    const rolePlayers = players.filter((p) => p.role && p.role !== 'Any');
+    const anyPlayers = players.filter((p) => !p.role || p.role === 'Any');
+    shuffle(rolePlayers);
+    shuffle(anyPlayers);
+    players = rolePlayers.concat(anyPlayers);
 
     // Snapshot state to restore later
     const prevAgents = agents.slice();

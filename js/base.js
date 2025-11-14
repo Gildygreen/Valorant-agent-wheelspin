@@ -311,6 +311,11 @@ window.updatePerAgentSectionVisibility = function updatePerAgentSectionVisibilit
 };
 
 window.updatePerAgentSectionVisibility();
+try {
+  if (typeof window.updateTeamRollButtonState === 'function') {
+    window.updateTeamRollButtonState();
+  }
+} catch (e) {}
 
 function isMobileViewport() {
   try {

@@ -406,6 +406,13 @@ async function loadAgentsFromValorantApi() {
     try { if (typeof window.refreshWheelEmptyState === 'function') window.refreshWheelEmptyState(); } catch (e) {}
     try { markWheelAssetsReady(); } catch (e) {}
     try { if (typeof window.refreshTeamCompIcons === 'function') window.refreshTeamCompIcons(ROLE_ICONS); } catch (e) {}
+    // After agents have fully loaded and filters/exclusions are applied,
+    // validate team-roll feasibility so the initial state is correct.
+    try {
+      if (typeof window.updateTeamRollButtonState === 'function') {
+        window.updateTeamRollButtonState();
+      }
+    } catch (e) {}
   } catch (e) {
     console.warn('Failed to load agents from API', e);
     try { markWheelAssetsReady(); } catch (err) {}
@@ -432,6 +439,8 @@ window.applyRoleFilter = function applyRoleFilter(selectedRoles = []) {
     try { populatePerAgentSettings(); } catch (e) {}
     try { populateDebugAgentSelect(); } catch (e) {}
     try { if (typeof window.refreshWheelEmptyState === 'function') window.refreshWheelEmptyState(); } catch (e) {}
+    // Agent filters changed; update team-roll feasibility UI if available.
+    try { if (typeof window.updateTeamRollButtonState === 'function') window.updateTeamRollButtonState(); } catch (e) {}
   } catch (e) {}
 };
 
@@ -454,6 +463,11 @@ function setAgentExcludedPublic(agentName, excluded) {
   try {
     if (typeof window.renderAgentAvailabilityList === 'function') {
       window.renderAgentAvailabilityList();
+    }
+  } catch (e) {}
+  try {
+    if (typeof window.updateTeamRollButtonState === 'function') {
+      window.updateTeamRollButtonState();
     }
   } catch (e) {}
 }

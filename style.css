@@ -1372,3 +1372,16 @@ canvas {
   cursor: not-allowed;
   box-shadow: none;
 }
+
+.team-roll-hint {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+  min-height: 1.2em;
+}
+
+.team-roll-hint--error {
+  color: #ff9f9f;
+}
