@@ -1,48 +1,72 @@
 let wheelEffectiveDpr = 1;
 
-function drawWheel() {
-  // Use CSS pixel dimensions (account for effective devicePixelRatio via setTransform)
-  const dpr = wheelEffectiveDpr || 1;
-  const cssWidth = canvas.width / dpr;
-  const cssHeight = canvas.height / dpr;
-  const centerX = cssWidth / 2;
-  const centerY = cssHeight / 2;
-  const maxRadius = Math.min(cssWidth, cssHeight) / 2;
-  const edgeInset = Math.min(Math.max(maxRadius * 0.02, 32), 32);
-  const radius = maxRadius - edgeInset;
+// Offscreen buffer used for the heavy slice + agent rendering so that
+// the main canvas only needs to rotate/blit the pre-rendered wheel each frame.
+let wheelBufferCanvas = null;
+let wheelBufferCtx = null;
+let wheelBufferRadius = 0;
+let wheelBufferDirty = true;
+// Small offscreen buffer used to pre-mask agent icons so their soft edge
+// fade does not disturb the underlying slice colors.
+let wheelIconCanvas = null;
+let wheelIconCtx = null;
+
+function renderWheelToBuffer(radius, isMobile) {
   if (!agents || !agents.length || radius <= 0) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
     return;
   }
-  const isMobile = (typeof isMobileViewport === 'function' && isMobileViewport());
-  const sliceShadowScale = isMobile ? 0.55 : 1;
+  const size = Math.max(2, Math.floor(radius * 2));
+  if (!wheelBufferCanvas) {
+    wheelBufferCanvas = document.createElement('canvas');
+    wheelBufferCtx = wheelBufferCanvas.getContext('2d');
+  }
+  if (wheelBufferCanvas.width !== size || wheelBufferCanvas.height !== size) {
+    wheelBufferCanvas.width = size;
+    wheelBufferCanvas.height = size;
+  }
+
+  const bctx = wheelBufferCtx;
+  const centerX = size / 2;
+  const centerY = size / 2;
   const arc = Math.PI * 2 / agents.length;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const sliceShadowScale = isMobile ? 0.55 : 1;
+
+  bctx.setTransform(1, 0, 0, 1, 0, 0);
+  bctx.clearRect(0, 0, size, size);
 
   agents.forEach((agent, i) => {
-    const angle = startAngle + i * arc;
+    const angle = i * arc;
     const midAngle = angle + arc / 2;
-    ctx.save();
-    ctx.beginPath();
     const baseColor = agent.color || '#666';
     const innerRadius = radius * 0.6;
-    const gradient = ctx.createRadialGradient(centerX, centerY, innerRadius * 0.9, centerX, centerY, radius);
+
+    bctx.save();
+    bctx.beginPath();
+    const gradient = bctx.createRadialGradient(
+      centerX,
+      centerY,
+      innerRadius * 0.9,
+      centerX,
+      centerY,
+      radius
+    );
     gradient.addColorStop(0, shadeColor(baseColor, 0.18));
     gradient.addColorStop(0.32, shadeColor(baseColor, 0.08));
     gradient.addColorStop(0.6, baseColor);
     gradient.addColorStop(0.82, shadeColor(baseColor, -0.14));
     gradient.addColorStop(1, shadeColor(baseColor, -0.26));
-    ctx.fillStyle = gradient;
-    ctx.moveTo(centerX, centerY);
-    ctx.arc(centerX, centerY, radius, angle, angle + arc, false);
-    ctx.closePath();
-	    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-	    ctx.shadowBlur = sliceShadowScale * Math.max(6, radius * 0.04);
-	    ctx.shadowOffsetX = sliceShadowScale * Math.cos(midAngle) * 4;
-	    ctx.shadowOffsetY = sliceShadowScale * Math.sin(midAngle) * 4;
-    ctx.fill();
-    ctx.lineWidth = Math.max(1.2, radius * 0.005);
-    const borderGradient = ctx.createLinearGradient(
+    bctx.fillStyle = gradient;
+    bctx.moveTo(centerX, centerY);
+    bctx.arc(centerX, centerY, radius, angle, angle + arc, false);
+    bctx.closePath();
+    bctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    bctx.shadowBlur = sliceShadowScale * Math.max(6, radius * 0.04);
+    bctx.shadowOffsetX = sliceShadowScale * Math.cos(midAngle) * 4;
+    bctx.shadowOffsetY = sliceShadowScale * Math.sin(midAngle) * 4;
+    bctx.fill();
+
+    bctx.lineWidth = Math.max(1.2, radius * 0.005);
+    const borderGradient = bctx.createLinearGradient(
       centerX + Math.cos(angle) * radius,
       centerY + Math.sin(angle) * radius,
       centerX + Math.cos(angle + arc) * radius,
@@ -51,71 +75,138 @@ function drawWheel() {
     borderGradient.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
     borderGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.08)');
     borderGradient.addColorStop(1, 'rgba(0, 0, 0, 0.18)');
-    ctx.strokeStyle = borderGradient;
-    ctx.stroke();
+    bctx.strokeStyle = borderGradient;
+    bctx.stroke();
 
-    // Accent separator along the leading slice edge to make borders pop
-    ctx.save();
-    ctx.lineCap = 'round';
+    // Accent separator along the leading slice edge
+    bctx.save();
+    bctx.lineCap = 'round';
     const separatorStart = radius * 0.25;
     const sepInnerX = centerX + Math.cos(angle) * separatorStart;
     const sepInnerY = centerY + Math.sin(angle) * separatorStart;
     const sepOuterX = centerX + Math.cos(angle) * radius;
     const sepOuterY = centerY + Math.sin(angle) * radius;
-    ctx.lineWidth = Math.max(2.2, radius * 0.0095);
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.32)';
-    ctx.beginPath();
-    ctx.moveTo(sepInnerX, sepInnerY);
-    ctx.lineTo(sepOuterX, sepOuterY);
-    ctx.stroke();
+    bctx.lineWidth = Math.max(2.2, radius * 0.0095);
+    bctx.strokeStyle = 'rgba(0, 0, 0, 0.32)';
+    bctx.beginPath();
+    bctx.moveTo(sepInnerX, sepInnerY);
+    bctx.lineTo(sepOuterX, sepOuterY);
+    bctx.stroke();
 
-    ctx.lineWidth = Math.max(1.2, radius * 0.006);
-    const separatorGradient = ctx.createLinearGradient(sepInnerX, sepInnerY, sepOuterX, sepOuterY);
+    bctx.lineWidth = Math.max(1.2, radius * 0.006);
+    const separatorGradient = bctx.createLinearGradient(
+      sepInnerX,
+      sepInnerY,
+      sepOuterX,
+      sepOuterY
+    );
     separatorGradient.addColorStop(0, 'rgba(255,255,255,0.08)');
     separatorGradient.addColorStop(0.4, 'rgba(255,255,255,0.25)');
     separatorGradient.addColorStop(1, 'rgba(255,255,255,0.1)');
-    ctx.strokeStyle = separatorGradient;
-    ctx.stroke();
+    bctx.strokeStyle = separatorGradient;
+    bctx.stroke();
+    bctx.restore();
+
+    // Clipped gloss overlay: darken slightly toward the wheel center for depth (skip on mobile for performance)
+    if (!isMobile) {
+      bctx.save();
+      bctx.beginPath();
+      bctx.moveTo(centerX, centerY);
+      bctx.arc(centerX, centerY, radius, angle, angle + arc, false);
+      bctx.closePath();
+      bctx.clip();
+      const glossGradient = bctx.createRadialGradient(
+        centerX,
+        centerY,
+        0,
+        centerX,
+        centerY,
+        radius
+      );
+      glossGradient.addColorStop(0.0, 'rgba(0,0,0,0.16)');
+      glossGradient.addColorStop(0.35, 'rgba(0,0,0,0.10)');
+      glossGradient.addColorStop(0.65, 'rgba(0,0,0,0.04)');
+      glossGradient.addColorStop(1.0, 'rgba(0,0,0,0.0)');
+      const prevOp = bctx.globalCompositeOperation;
+      bctx.globalCompositeOperation = 'multiply';
+      bctx.fillStyle = glossGradient;
+      bctx.fillRect(
+        centerX - radius,
+        centerY - radius,
+        radius * 2,
+        radius * 2
+      );
+      bctx.globalCompositeOperation = prevOp;
+      bctx.restore();
+    }
+    bctx.restore();
+  });
+
+  wheelBufferRadius = radius;
+}
+
+function drawWheel(invalidateBuffer = false) {
+  const dpr = wheelEffectiveDpr || 1;
+  const cssWidth = canvas.width / dpr;
+  const cssHeight = canvas.height / dpr;
+  const centerX = cssWidth / 2;
+  const centerY = cssHeight / 2;
+  const maxRadius = Math.min(cssWidth, cssHeight) / 2;
+  const edgeInset = Math.min(Math.max(maxRadius * 0.02, 32), 32);
+  const radius = maxRadius - edgeInset;
+  const isMobile = (typeof isMobileViewport === 'function' && isMobileViewport());
+
+  if (invalidateBuffer) {
+    wheelBufferDirty = true;
+  }
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+  if (!agents || !agents.length || radius <= 0) {
+    return;
+  }
+
+  if (!wheelBufferCanvas || wheelBufferDirty || wheelBufferRadius !== radius) {
+    renderWheelToBuffer(radius, isMobile);
+    wheelBufferDirty = false;
+  }
+
+  // Draw pre-rendered wheel, rotated by the current startAngle
+  if (wheelBufferCanvas) {
+    const size = wheelBufferCanvas.width;
+    const bufferRadius = size / 2;
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.rotate(startAngle);
+    ctx.drawImage(
+      wheelBufferCanvas,
+      -bufferRadius,
+      -bufferRadius,
+      size,
+      size
+    );
     ctx.restore();
+  }
 
-	    // Clipped gloss overlay: darken slightly toward the wheel center for depth (skip on mobile for performance)
-	    if (!isMobile) {
-	      ctx.save();
-	      ctx.beginPath();
-	      ctx.moveTo(centerX, centerY);
-	      ctx.arc(centerX, centerY, radius, angle, angle + arc, false);
-	      ctx.closePath();
-	      ctx.clip();
-	      const glossGradient = ctx.createRadialGradient(
-	        centerX, centerY, 0,
-	        centerX, centerY, radius
-	      );
-	      // Darker near the center, fading outwards
-	      glossGradient.addColorStop(0.0, 'rgba(0,0,0,0.16)');
-	      glossGradient.addColorStop(0.35, 'rgba(0,0,0,0.10)');
-	      glossGradient.addColorStop(0.65, 'rgba(0,0,0,0.04)');
-	      glossGradient.addColorStop(1.0, 'rgba(0,0,0,0.0)');
-	      const prevOp = ctx.globalCompositeOperation;
-	      ctx.globalCompositeOperation = 'multiply';
-	      ctx.fillStyle = glossGradient;
-	      ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
-	      ctx.globalCompositeOperation = prevOp;
-	      ctx.restore();
-	    }
-	    ctx.restore();
-
-    // Draw agent image if available — larger and spaced further out
-    if (agent._image && agent._image.complete) {
+  // Draw agent images in screen space so they always remain upright
+  try {
+    const arc = Math.PI * 2 / agents.length;
+    agents.forEach((agent, i) => {
+      if (!agent._image || !agent._image.complete) return;
       try {
-        // place images at outer edge but ensure they fit the slice width
         const imgDist = Math.floor(radius * 0.85);
         const baseSize = Math.floor(radius);
-        // chord length at imgDist gives max available width inside slice
         const maxWidth = 3 * imgDist * Math.sin(arc / 2.5);
-        // also ensure image stays inside radial bounds
         const radialAvailable = Math.max(0, 2 * (radius - imgDist));
-        let imgSize = Math.max(18, Math.min(baseSize, Math.floor(maxWidth * 0.82), Math.floor(radialAvailable * 0.9)));
-        // if there's not enough radial space, move image slightly inward
+        let imgSize = Math.max(
+          18,
+          Math.min(
+            baseSize,
+            Math.floor(maxWidth * 0.82),
+            Math.floor(radialAvailable * 0.9)
+          )
+        );
         let dist = imgDist;
         if (imgSize < 18) {
           imgSize = Math.max(14, Math.floor(maxWidth * 0.6));
@@ -123,31 +214,63 @@ function drawWheel() {
         if (imgSize > radialAvailable) {
           dist = Math.floor(radius - imgSize / 2 - 2);
         }
-        const midAngle = angle + arc / 2;
+        const baseAngle = startAngle + i * arc;
+        const midAngle = baseAngle + arc / 2;
         const imgX = centerX + Math.cos(midAngle) * dist - imgSize / 2;
         const imgY = centerY + Math.sin(midAngle) * dist - imgSize / 2;
+        const r = imgSize / 2;
+
+        // Prepare (or resize) the offscreen icon buffer
+        if (!wheelIconCanvas) {
+          wheelIconCanvas = document.createElement('canvas');
+          wheelIconCtx = wheelIconCanvas.getContext('2d');
+        }
+        if (wheelIconCanvas.width !== imgSize || wheelIconCanvas.height !== imgSize) {
+          wheelIconCanvas.width = imgSize;
+          wheelIconCanvas.height = imgSize;
+        }
+
+        const ic = wheelIconCtx;
+        ic.setTransform(1, 0, 0, 1, 0, 0);
+        ic.clearRect(0, 0, imgSize, imgSize);
+        // Draw the raw agent image into the buffer
+        ic.drawImage(agent._image, 0, 0, imgSize, imgSize);
+        // Apply a radial alpha mask so only the outer edge softly fades
+        // to transparency, keeping the center fully opaque.
+        ic.globalCompositeOperation = 'destination-in';
+        const g = ic.createRadialGradient(r, r, 0, r, r, r);
+        g.addColorStop(0.0, 'rgba(255,255,255,1)');
+        g.addColorStop(0.65, 'rgba(255,255,255,1)');
+        g.addColorStop(1.0, 'rgba(255,255,255,0)');
+        ic.fillStyle = g;
+        ic.fillRect(0, 0, imgSize, imgSize);
+        // Reset composite mode for future draws on the icon buffer
+        ic.globalCompositeOperation = 'source-over';
+
+        // Now draw the pre-masked icon into the main canvas, clipped to its slice,
+        // so the fade only affects the icon and not the underlying slice colors.
         ctx.save();
-        // clip to slice to avoid overlap
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, radius, angle, angle + arc, false);
+        ctx.arc(centerX, centerY, radius, baseAngle, baseAngle + arc, false);
         ctx.closePath();
         ctx.clip();
-        ctx.drawImage(agent._image, imgX, imgY, imgSize, imgSize);
+        ctx.drawImage(wheelIconCanvas, imgX, imgY, imgSize, imgSize);
         ctx.restore();
       } catch (e) {
-        // ignore draw errors
+        // ignore per-image draw errors
       }
-    }
-    // no agent name rendering (per request)
-  });
+    });
+  } catch (e) {
+    // ignore agent image rendering errors
+  }
 
-  // Draw marker triangle at top, overlapping the wheel halfway
+  // Draw marker triangle at top, overlapping the wheel halfway (non-rotating)
   try {
-    const triWidth = Math.max(12, Math.floor(radius * 0.06)); // half-base
+    const triWidth = Math.max(12, Math.floor(radius * 0.06));
     const triHeight = Math.max(16, Math.floor(triWidth * 1.2));
     const tipX = centerX;
-    const tipY = centerY - radius + (triHeight / 2); // tip placed half inside the wheel
+    const tipY = centerY - radius + triHeight / 2;
     const leftX = tipX - triWidth;
     const leftY = tipY - triHeight;
     const rightX = tipX + triWidth;
@@ -156,8 +279,16 @@ function drawWheel() {
     ctx.save();
     const baseMidX = (leftX + rightX) / 2;
     const baseMidY = leftY;
-    const pointerGradient = ctx.createLinearGradient(tipX, tipY, baseMidX, baseMidY);
-    const selectedPtr = (typeof window !== 'undefined' && window.pointerColor) ? window.pointerColor : '#ffd45c';
+    const pointerGradient = ctx.createLinearGradient(
+      tipX,
+      tipY,
+      baseMidX,
+      baseMidY
+    );
+    const selectedPtr =
+      typeof window !== 'undefined' && window.pointerColor
+        ? window.pointerColor
+        : '#ffd45c';
     const lightPtr = shadeColor(selectedPtr, 0.35);
     const darkPtr = shadeColor(selectedPtr, -0.45);
     pointerGradient.addColorStop(0, lightPtr);
@@ -170,10 +301,10 @@ function drawWheel() {
     ctx.lineTo(rightX, rightY);
     ctx.closePath();
     ctx.fillStyle = pointerGradient;
-	    ctx.shadowColor = 'rgba(0,0,0,0.55)';
-	    const pointerShadowScale = isMobile ? 0.6 : 1;
-	    ctx.shadowBlur = pointerShadowScale * Math.max(8, radius * 0.05);
-	    ctx.shadowOffsetY = pointerShadowScale * Math.max(3, radius * 0.015);
+    ctx.shadowColor = 'rgba(0,0,0,0.55)';
+    const pointerShadowScale = isMobile ? 0.6 : 1;
+    ctx.shadowBlur = pointerShadowScale * Math.max(8, radius * 0.05);
+    ctx.shadowOffsetY = pointerShadowScale * Math.max(3, radius * 0.015);
     ctx.fill();
 
     ctx.lineWidth = Math.max(1.5, radius * 0.007);
@@ -187,7 +318,12 @@ function drawWheel() {
     ctx.lineTo(centerX - triWidth * 0.35, leftY + triHeight * 0.2);
     ctx.lineTo(centerX + triWidth * 0.35, rightY + triHeight * 0.2);
     ctx.closePath();
-    const highlightGradient = ctx.createLinearGradient(tipX, tipY, baseMidX, baseMidY);
+    const highlightGradient = ctx.createLinearGradient(
+      tipX,
+      tipY,
+      baseMidX,
+      baseMidY
+    );
     highlightGradient.addColorStop(0, 'rgba(255,255,255,0.9)');
     highlightGradient.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = highlightGradient;
@@ -204,59 +340,82 @@ function drawWheel() {
   try {
     if (centerIcon && centerIcon.complete) {
       const desiredSize = Math.floor(radius * 0.5);
-      const baseMin = isMobileViewport() ? centerIconMinMobilePx : centerIconMinDesktopPx;
+      const baseMin = isMobileViewport()
+        ? centerIconMinMobilePx
+        : centerIconMinDesktopPx;
       const minSize = Math.max(baseMin, Math.floor(radius * 0.25));
       const maxSize = Math.max(minSize + 1, Math.floor(radius * 0.7));
       const iconSize = clamp(desiredSize, minSize, maxSize);
       const iconX = centerX - iconSize / 2;
       const iconY = centerY - iconSize / 2;
-      
+
       ctx.save();
-      // Draw subtle halo for depth before clipping
       ctx.beginPath();
       ctx.arc(centerX, centerY, iconSize / 2, 0, Math.PI * 2);
-	      const centerShadowScale = isMobile ? 0.6 : 1;
-	      ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-	      ctx.shadowBlur = centerShadowScale * Math.max(10, radius * 0.08);
-	      ctx.shadowOffsetX = 0;
-	      ctx.shadowOffsetY = centerShadowScale * Math.max(4, radius * 0.02);
-      const iconGradient = ctx.createRadialGradient(centerX, centerY, iconSize * 0.05, centerX, centerY, iconSize * 0.5);
+      const centerShadowScale = isMobile ? 0.6 : 1;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+      ctx.shadowBlur = centerShadowScale * Math.max(10, radius * 0.08);
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = centerShadowScale * Math.max(4, radius * 0.02);
+      const iconGradient = ctx.createRadialGradient(
+        centerX,
+        centerY,
+        iconSize * 0.05,
+        centerX,
+        centerY,
+        iconSize * 0.5
+      );
       iconGradient.addColorStop(0, '#ffffff');
       iconGradient.addColorStop(1, 'rgba(255,255,255,0.85)');
       ctx.fillStyle = iconGradient;
       ctx.fill();
-      // Clip to circle and draw icon
       ctx.beginPath();
       ctx.arc(centerX, centerY, iconSize / 2, 0, Math.PI * 2);
       ctx.clip();
       ctx.drawImage(centerIcon, iconX, iconY, iconSize, iconSize);
       ctx.restore();
 
-      // Border ring to make the icon pop
       ctx.save();
       ctx.beginPath();
       ctx.arc(centerX, centerY, iconSize / 2, 0, Math.PI * 2);
       ctx.lineWidth = Math.max(5, radius * 0.03);
-      const outerRingGradient = ctx.createLinearGradient(iconX, iconY, iconX + iconSize, iconY + iconSize);
+      const outerRingGradient = ctx.createLinearGradient(
+        iconX,
+        iconY,
+        iconX + iconSize,
+        iconY + iconSize
+      );
       outerRingGradient.addColorStop(0, 'rgba(255,255,255,0.9)');
       outerRingGradient.addColorStop(1, 'rgba(200,200,200,0.6)');
       ctx.strokeStyle = outerRingGradient;
-	      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-	      ctx.shadowBlur = centerShadowScale * Math.max(8, radius * 0.06);
+      const centerShadowScale2 = isMobile ? 0.6 : 1;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowBlur = centerShadowScale2 * Math.max(8, radius * 0.06);
       ctx.stroke();
       ctx.restore();
 
-      // inner ring
       ctx.save();
       ctx.beginPath();
-      ctx.arc(centerX, centerY, iconSize / 2 - ctx.lineWidth, 0, Math.PI * 2);
+      ctx.arc(
+        centerX,
+        centerY,
+        iconSize / 2 - ctx.lineWidth,
+        0,
+        Math.PI * 2
+      );
       ctx.lineWidth = Math.max(2.5, radius * 0.015);
-      const ringGradient = ctx.createLinearGradient(iconX, iconY, iconX + iconSize, iconY + iconSize);
+      const ringGradient = ctx.createLinearGradient(
+        iconX,
+        iconY,
+        iconX + iconSize,
+        iconY + iconSize
+      );
       ringGradient.addColorStop(0, '#0a0a0aff');
       ringGradient.addColorStop(1, '#ffffffff');
       ctx.strokeStyle = ringGradient;
-	      ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-	      ctx.shadowBlur = centerShadowScale * Math.max(6, radius * 0.05);
+      const centerShadowScale3 = isMobile ? 0.6 : 1;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+      ctx.shadowBlur = centerShadowScale3 * Math.max(6, radius * 0.05);
       ctx.stroke();
       ctx.restore();
     }
@@ -284,7 +443,8 @@ function drawWheel() {
 	  canvas.height = Math.round(rect.height * dpr);
 	  // Ensure 1:1 mapping of CSS pixels to drawing commands
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  drawWheel();
+  // Canvas size changed — invalidate buffer so it is re-rendered at the new radius.
+  drawWheel(true);
 }
 
 // Load center icon image
@@ -303,7 +463,8 @@ function loadCenterIcon() {
       try { markCenterIconReady(); } catch (e) {}
     };
     centerIcon.onload = () => {
-      drawWheel();
+      // Center icon asset is ready — redraw, but keep the heavy wheel slices cached.
+      drawWheel(false);
       settle();
     };
     centerIcon.onerror = () => {
@@ -498,7 +659,8 @@ function animationLoop(ts) {
     // ignore tick detection errors
   }
 
-  drawWheel();
+  // Draw using the cached static wheel image; do not invalidate buffer during animation.
+  drawWheel(false);
   // Decide whether we actually need another frame.
   // Continue while a spin is active, or while idle rotation is enabled.
   const needsAnimation =

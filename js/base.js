@@ -139,9 +139,9 @@ let spinning = false;
 // animation state
 let angularVelocity = 0; // radians per second
 let angularDecel = 0; // radians per second squared (positive value reduces velocity)
-// Idle spin speed for the wheel. On mobile, keep this at 0 to avoid
-// constantly redrawing the canvas when the wheel is not actively spinning.
-let idleAngularVelocity = isMobileViewport() ? 0 : 0.06;
+// Idle spin speed for the wheel. Keep this gentle so it looks alive
+// without being heavy, even on mobile devices.
+let idleAngularVelocity = isMobileViewport() ? 0.035 : 0.06;
 let lastFrameTs = null;
 let spinTriggered = false;
 let idlePaused = false; // when true, idle rotation is suspended (e.g., while winner modal is open)

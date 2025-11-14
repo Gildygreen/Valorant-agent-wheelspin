@@ -398,7 +398,8 @@ async function loadAgentsFromValorantApi() {
     applyRandomizeSoundRules();
     // reset pointer-relative tracking so tick detection doesn't fire spuriously
     prevRel = null;
-    drawWheel();
+    // Wheel contents changed; force a rebuild of the cached wheel buffer.
+    drawWheel(true);
     populatePerAgentSettings();
     populateDebugAgentSelect();
     try { if (typeof window.refreshRoleFilterIcons === 'function') window.refreshRoleFilterIcons(ROLE_ICONS); } catch (e) {}
@@ -419,15 +420,15 @@ window.applyRoleFilter = function applyRoleFilter(selectedRoles = []) {
   try {
     const list = Array.isArray(selectedRoles) ? selectedRoles : [];
     persistStoredRoles(list);
-    if (!allAgents || !allAgents.length) { drawWheel(); return; }
+    if (!allAgents || !allAgents.length) { drawWheel(true); return; }
     const hasRoleData = allAgents.some(a => !!a.role);
     const base = (!list.length || !hasRoleData)
       ? allAgents
       : allAgents.filter(a => a.role && list.includes(a.role));
     agents = base.filter(a => !isAgentExcluded(a));
-    // Redraw and refresh dependent UIs
+    // Redraw and refresh dependent UIs; invalidate buffer because slice layout changed.
     prevRel = null;
-    drawWheel();
+    drawWheel(true);
     try { populatePerAgentSettings(); } catch (e) {}
     try { populateDebugAgentSelect(); } catch (e) {}
     try { if (typeof window.refreshWheelEmptyState === 'function') window.refreshWheelEmptyState(); } catch (e) {}
@@ -443,7 +444,7 @@ function setAgentExcludedPublic(agentName, excluded) {
     const currentRoles = getStoredRoles();
     window.applyRoleFilter(currentRoles);
   } catch (e) {
-    try { drawWheel(); } catch (err) {}
+    try { drawWheel(true); } catch (err) {}
   }
   try {
     if (typeof window.refreshWheelEmptyState === 'function') {

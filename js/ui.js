@@ -743,7 +743,7 @@ async function animatedTeamRoll(team, randomizeRolesFlag) {
       // Apply pool to wheel and set temporary name for modal
       agents = pool.slice();
       try { prevRel = null; prevIndex = null; } catch (e) {}
-      try { drawWheel(); } catch (e) {}
+      try { drawWheel(true); } catch (e) {}
       const oldName = typeof playerName === 'string' ? playerName : '';
       playerName = p.name;
 
@@ -766,7 +766,7 @@ async function animatedTeamRoll(team, randomizeRolesFlag) {
 
     // Restore wheel state
     agents = prevAgents.slice();
-    try { drawWheel(); } catch (e) {}
+    try { drawWheel(true); } catch (e) {}
     playerName = prevPlayerName;
     teamRollBtn.disabled = prevDisabled;
     window.suppressWinnerModal = false;
@@ -1004,7 +1004,8 @@ if (pointerColorInput) {
       if (!val) return;
       window.pointerColor = val;
       try { localStorage.setItem('pointerColor', val); } catch (err) {}
-      try { drawWheel(); } catch (err) {}
+      // Pointer styling changed; redraw without rebuilding the static wheel buffer.
+      try { drawWheel(false); } catch (err) {}
     } catch (err) {}
   });
 }

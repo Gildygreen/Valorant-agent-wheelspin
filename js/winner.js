@@ -136,6 +136,14 @@ function closeWinnerModal(options = {}) {
   idlePaused = false;
   winnerModalOpen = false;
   try { if (typeof refreshModalOpenClass === 'function') refreshModalOpenClass(); } catch (e) {}
+  // Resume idle spin after the winner modal closes, if enabled.
+  try {
+    const wantsIdle = Math.abs(idleAngularVelocity || 0) > 0.0001;
+    if (wantsIdle && !spinTriggered && !spinInDecel && !animationLoopRunning && typeof requestAnimationFrame === 'function') {
+      animationLoopRunning = true;
+      requestAnimationFrame(animationLoop);
+    }
+  } catch (e) {}
   // Remove wheel blur once the modal closes
   try {
     const wheelContainer = document.getElementById('wheelContainer');
