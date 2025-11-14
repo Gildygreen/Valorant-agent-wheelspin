@@ -37,14 +37,82 @@ function getWinSoundPath(agent) {
   return (defaultSound || available[0])?.path || null;
 }
 
+// Cache of decoded win-line buffers so we don't re-fetch/re-decode on every spin.
+let winSoundBufferCache = {};
+let winSoundBufferLoads = {};
+
 function playWinSound(path) {
   if (!path) return;
+
+  // Prefer Web Audio on platforms where we've created/unlocked an AudioContext
+  // via a user gesture (spin click). This makes programmatic playback work
+  // reliably on mobile browsers like iOS Safari.
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (AudioContext && typeof audioCtx !== 'undefined') {
+      if (!audioCtx) {
+        // As a fallback, try to create the context here if it doesn't exist.
+        audioCtx = new AudioContext();
+      }
+      if (audioCtx) {
+        // If we already have a decoded buffer, play it immediately.
+        const cached = winSoundBufferCache[path];
+        const startWithBuffer = (buffer) => {
+          if (!buffer || !audioCtx) return;
+          try {
+            const src = audioCtx.createBufferSource();
+            src.buffer = buffer;
+            const gain = audioCtx.createGain();
+            gain.gain.value = agentWinVolume;
+            src.connect(gain);
+            gain.connect(audioCtx.destination);
+            src.start();
+          } catch (e) { /* ignore */ }
+        };
+
+        if (cached) {
+          startWithBuffer(cached);
+          return;
+        }
+
+        // Otherwise, ensure there's only one in-flight load per path.
+        if (!winSoundBufferLoads[path]) {
+          winSoundBufferLoads[path] = (async () => {
+            try {
+              const isFileProtocol = window.location && window.location.protocol === 'file:';
+              if (isFileProtocol) return null;
+              const resp = await fetch(path, { cache: 'force-cache' });
+              if (!resp.ok) return null;
+              const ab = await resp.arrayBuffer();
+              const buffer = await audioCtx.decodeAudioData(ab.slice(0));
+              winSoundBufferCache[path] = buffer;
+              return buffer;
+            } catch (e) {
+              return null;
+            } finally {
+              // Allow re-tries if a future call needs it.
+              delete winSoundBufferLoads[path];
+            }
+          })();
+        }
+
+        winSoundBufferLoads[path].then((buffer) => {
+          if (buffer) startWithBuffer(buffer);
+        }).catch(() => {});
+        return;
+      }
+    }
+  } catch (e) {
+    // fall through to HTMLAudioElement fallback
+  }
+
+  // Fallback: plain HTMLAudio element (desktop browsers, or if Web Audio failed).
   try {
     const audio = new Audio(path);
     audio.volume = agentWinVolume;
     audio.preload = 'auto';
     audio.play().catch(() => {});
-  } catch (e) {}
+  } catch (e) { /* ignore */ }
 }
 
 function openWinnerModalForAgent(agent, options = {}) {

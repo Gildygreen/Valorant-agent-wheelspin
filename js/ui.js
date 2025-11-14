@@ -1015,8 +1015,16 @@ if (pointerColorInput) {
 if (spinBtn) {
   spinBtn.addEventListener('click', () => {
     if (spinning || agents.length === 0) return;
+    // Ensure Web Audio is created and resumed on first user gesture,
+    // so mobile browsers allow subsequent programmatic playback (win lines, ticks, drumroll).
     try {
-      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!audioCtx && AudioContext) {
+        audioCtx = new AudioContext();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
     } catch (e) {}
     // Hide/clear team feed on any new spin
     try { hideTeamFeedUI(true); } catch (e) {}
@@ -1030,7 +1038,13 @@ if (canvas) {
     if (!spinning && agents.length > 0) {
       // resume audio context on first user gesture if needed (some browsers block audio until user interacts)
       try {
-        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!audioCtx && AudioContext) {
+          audioCtx = new AudioContext();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
       } catch (e) {}
       try { hideTeamFeedUI(true); } catch (e) {}
       spinWheel();
