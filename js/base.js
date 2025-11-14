@@ -31,6 +31,61 @@ const wheelLoading = document.getElementById('wheelLoading');
 let wheelAssetsReady = false;
 let centerIconReady = false;
 
+let isOBS = false;
+try {
+  isOBS = typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.includes('OBS');
+  if (isOBS && document?.body?.classList) {
+    document.body.classList.add('obs-ua');
+  }
+} catch (e) {
+  isOBS = false;
+}
+
+// OBS UI toggle — allow hiding/showing overlay chrome (settings / Ko-fi)
+let obsUiToggleCreated = false;
+
+function ensureObsUiToggle() {
+  if (!isOBS || obsUiToggleCreated) return;
+  obsUiToggleCreated = true;
+  try {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'obs-ui-toggle';
+    btn.textContent = 'Hide UI';
+    btn.setAttribute('aria-label', 'Hide overlay controls');
+
+    const updateLabel = () => {
+      const hidden = document.body.classList.contains('obs-ui-hidden');
+      btn.textContent = hidden ? 'Show UI' : 'Hide UI';
+      btn.setAttribute('aria-label', hidden ? 'Show overlay controls' : 'Hide overlay controls');
+    };
+
+    btn.addEventListener('click', () => {
+      try {
+        document.body.classList.toggle('obs-ui-hidden');
+        updateLabel();
+      } catch (e) {}
+    });
+
+    document.body.appendChild(btn);
+    updateLabel();
+  } catch (e) {}
+}
+
+if (isOBS) {
+  try {
+    // In OBS, hide overlay chrome by default and show a toggle immediately
+    if (document && document.body && document.body.classList) {
+      document.body.classList.add('obs-ui-hidden');
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', ensureObsUiToggle, { once: true });
+    } else {
+      ensureObsUiToggle();
+    }
+  } catch (e) {}
+}
+
 function getStoredBoolean(key, fallback) {
   try {
     const stored = localStorage.getItem(key);
