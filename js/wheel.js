@@ -259,8 +259,15 @@ function drawWheel() {
 	function resizeCanvas() {
 	  const rect = canvas.getBoundingClientRect();
 	  const rawDpr = window.devicePixelRatio || 1;
-	  // On mobile, cap effective DPR to keep the wheel light-weight and smooth
-	  const maxDpr = (typeof isMobileViewport === 'function' && isMobileViewport()) ? 1.5 : 2;
+	  const isMobile = (typeof isMobileViewport === 'function' && isMobileViewport());
+	  let maxDpr = 2;
+	  if (isMobile) {
+	    const w = window.innerWidth || rect.width || 0;
+	    const h = window.innerHeight || rect.height || 0;
+	    const isLandscape = w > h && h > 0;
+	    // In mobile landscape, be even more aggressive to keep things smooth
+	    maxDpr = isLandscape ? 1.2 : 1.5;
+	  }
 	  const dpr = Math.max(1, Math.min(rawDpr, maxDpr));
 	  wheelEffectiveDpr = dpr;
 	  canvas.width = Math.round(rect.width * dpr);

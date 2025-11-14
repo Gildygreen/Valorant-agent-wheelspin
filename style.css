@@ -47,6 +47,7 @@ body.obs-overlay #winnerModal .modal-button { box-shadow: none !important; }
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: clamp(230px, 22vw, 420px);
   max-height: calc(100vh - 120px);
   overflow: auto;
   z-index: 9;
@@ -59,7 +60,7 @@ body.obs-overlay #winnerModal .modal-button { box-shadow: none !important; }
   background: rgba(0,0,0,0.35);
   border: 1px solid rgba(255,255,255,0.12);
   border-radius: 6px;
-  padding: 6px 12px 6px 16px;
+  padding: clamp(4px, 0.6vw, 8px) clamp(12px, 1.4vw, 22px);
   transform: translateX(-20px);
   opacity: 0;
   transition: transform 240ms ease, opacity 240ms ease;
@@ -79,8 +80,8 @@ body.obs-overlay #winnerModal .modal-button { box-shadow: none !important; }
   opacity: 1;
 }
 .team-feed-item img {
-  width: 36px;
-  height: 36px;
+  width: clamp(28px, 2.4vw, 40px);
+  height: clamp(28px, 2.4vw, 40px);
   border-radius: 8px;
   object-fit: cover;
 }
@@ -88,11 +89,11 @@ body.obs-overlay #winnerModal .modal-button { box-shadow: none !important; }
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-size: 0.7rem;
+  font-size: clamp(0.65rem, 0.48rem + 0.35vw, 0.9rem);
 }
 .team-feed-item .tf-role {
   opacity: 0.85;
-  font-size: 0.8rem;
+  font-size: clamp(0.75rem, 0.55rem + 0.3vw, 0.95rem);
 }
 
 .team-feed-controls {
@@ -152,7 +153,12 @@ body.obs-overlay #winnerModal .modal-button { box-shadow: none !important; }
     gap: 10px;
   }
   .role-btn { width: 56px; height: 56px; }
-  .team-feed { left: 8px; top: 8px; max-width: 60vw; }
+  .team-feed {
+    left: 8px;
+    top: 8px;
+    min-width: 0;
+    max-width: 60vw;
+  }
 }
 
 #appMain {
@@ -213,6 +219,18 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* On mobile landscape, constrain wheel by viewport height to avoid clipping and reduce work */
+@media (max-width: 900px) and (orientation: landscape) {
+  #wheelContainer {
+    width: 90vh;
+    max-width: 90vh;
+  }
+  canvas {
+    width: 90vh;
+    max-width: 90vh;
+  }
 }
 
 /* Marker (pointer) */
