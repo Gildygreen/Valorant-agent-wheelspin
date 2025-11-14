@@ -10,6 +10,12 @@ function drawWheel() {
   const maxRadius = Math.min(cssWidth, cssHeight) / 2;
   const edgeInset = Math.min(Math.max(maxRadius * 0.02, 32), 32);
   const radius = maxRadius - edgeInset;
+  if (!agents || !agents.length || radius <= 0) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    return;
+  }
+  const isMobile = (typeof isMobileViewport === 'function' && isMobileViewport());
+  const sliceShadowScale = isMobile ? 0.55 : 1;
   const arc = Math.PI * 2 / agents.length;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -30,10 +36,10 @@ function drawWheel() {
     ctx.moveTo(centerX, centerY);
     ctx.arc(centerX, centerY, radius, angle, angle + arc, false);
     ctx.closePath();
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-    ctx.shadowBlur = Math.max(6, radius * 0.04);
-    ctx.shadowOffsetX = Math.cos(midAngle) * 4;
-    ctx.shadowOffsetY = Math.sin(midAngle) * 4;
+	    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+	    ctx.shadowBlur = sliceShadowScale * Math.max(6, radius * 0.04);
+	    ctx.shadowOffsetX = sliceShadowScale * Math.cos(midAngle) * 4;
+	    ctx.shadowOffsetY = sliceShadowScale * Math.sin(midAngle) * 4;
     ctx.fill();
     ctx.lineWidth = Math.max(1.2, radius * 0.005);
     const borderGradient = ctx.createLinearGradient(
@@ -72,29 +78,31 @@ function drawWheel() {
     ctx.stroke();
     ctx.restore();
 
-    // Clipped gloss overlay: darken slightly toward the wheel center for depth
-    ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY);
-    ctx.arc(centerX, centerY, radius, angle, angle + arc, false);
-    ctx.closePath();
-    ctx.clip();
-    const glossGradient = ctx.createRadialGradient(
-      centerX, centerY, 0,
-      centerX, centerY, radius
-    );
-    // Darker near the center, fading outwards
-    glossGradient.addColorStop(0.0, 'rgba(0,0,0,0.16)');
-    glossGradient.addColorStop(0.35, 'rgba(0,0,0,0.10)');
-    glossGradient.addColorStop(0.65, 'rgba(0,0,0,0.04)');
-    glossGradient.addColorStop(1.0, 'rgba(0,0,0,0.0)');
-    const prevOp = ctx.globalCompositeOperation;
-    ctx.globalCompositeOperation = 'multiply';
-    ctx.fillStyle = glossGradient;
-    ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
-    ctx.globalCompositeOperation = prevOp;
-    ctx.restore();
-    ctx.restore();
+	    // Clipped gloss overlay: darken slightly toward the wheel center for depth (skip on mobile for performance)
+	    if (!isMobile) {
+	      ctx.save();
+	      ctx.beginPath();
+	      ctx.moveTo(centerX, centerY);
+	      ctx.arc(centerX, centerY, radius, angle, angle + arc, false);
+	      ctx.closePath();
+	      ctx.clip();
+	      const glossGradient = ctx.createRadialGradient(
+	        centerX, centerY, 0,
+	        centerX, centerY, radius
+	      );
+	      // Darker near the center, fading outwards
+	      glossGradient.addColorStop(0.0, 'rgba(0,0,0,0.16)');
+	      glossGradient.addColorStop(0.35, 'rgba(0,0,0,0.10)');
+	      glossGradient.addColorStop(0.65, 'rgba(0,0,0,0.04)');
+	      glossGradient.addColorStop(1.0, 'rgba(0,0,0,0.0)');
+	      const prevOp = ctx.globalCompositeOperation;
+	      ctx.globalCompositeOperation = 'multiply';
+	      ctx.fillStyle = glossGradient;
+	      ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
+	      ctx.globalCompositeOperation = prevOp;
+	      ctx.restore();
+	    }
+	    ctx.restore();
 
     // Draw agent image if available — larger and spaced further out
     if (agent._image && agent._image.complete) {
@@ -162,9 +170,10 @@ function drawWheel() {
     ctx.lineTo(rightX, rightY);
     ctx.closePath();
     ctx.fillStyle = pointerGradient;
-    ctx.shadowColor = 'rgba(0,0,0,0.55)';
-    ctx.shadowBlur = Math.max(8, radius * 0.05);
-    ctx.shadowOffsetY = Math.max(3, radius * 0.015);
+	    ctx.shadowColor = 'rgba(0,0,0,0.55)';
+	    const pointerShadowScale = isMobile ? 0.6 : 1;
+	    ctx.shadowBlur = pointerShadowScale * Math.max(8, radius * 0.05);
+	    ctx.shadowOffsetY = pointerShadowScale * Math.max(3, radius * 0.015);
     ctx.fill();
 
     ctx.lineWidth = Math.max(1.5, radius * 0.007);
@@ -206,10 +215,11 @@ function drawWheel() {
       // Draw subtle halo for depth before clipping
       ctx.beginPath();
       ctx.arc(centerX, centerY, iconSize / 2, 0, Math.PI * 2);
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-      ctx.shadowBlur = Math.max(10, radius * 0.08);
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = Math.max(4, radius * 0.02);
+	      const centerShadowScale = isMobile ? 0.6 : 1;
+	      ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+	      ctx.shadowBlur = centerShadowScale * Math.max(10, radius * 0.08);
+	      ctx.shadowOffsetX = 0;
+	      ctx.shadowOffsetY = centerShadowScale * Math.max(4, radius * 0.02);
       const iconGradient = ctx.createRadialGradient(centerX, centerY, iconSize * 0.05, centerX, centerY, iconSize * 0.5);
       iconGradient.addColorStop(0, '#ffffff');
       iconGradient.addColorStop(1, 'rgba(255,255,255,0.85)');
@@ -231,8 +241,8 @@ function drawWheel() {
       outerRingGradient.addColorStop(0, 'rgba(255,255,255,0.9)');
       outerRingGradient.addColorStop(1, 'rgba(200,200,200,0.6)');
       ctx.strokeStyle = outerRingGradient;
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-      ctx.shadowBlur = Math.max(8, radius * 0.06);
+	      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+	      ctx.shadowBlur = centerShadowScale * Math.max(8, radius * 0.06);
       ctx.stroke();
       ctx.restore();
 
@@ -245,8 +255,8 @@ function drawWheel() {
       ringGradient.addColorStop(0, '#0a0a0aff');
       ringGradient.addColorStop(1, '#ffffffff');
       ctx.strokeStyle = ringGradient;
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-      ctx.shadowBlur = Math.max(6, radius * 0.05);
+	      ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+	      ctx.shadowBlur = centerShadowScale * Math.max(6, radius * 0.05);
       ctx.stroke();
       ctx.restore();
     }
@@ -260,7 +270,7 @@ function drawWheel() {
 	  const rect = canvas.getBoundingClientRect();
 	  const rawDpr = window.devicePixelRatio || 1;
 	  const isMobile = (typeof isMobileViewport === 'function' && isMobileViewport());
-	  let maxDpr = 2;
+	  let maxDpr = 1.5;
 	  if (isMobile) {
 	    const w = window.innerWidth || rect.width || 0;
 	    const h = window.innerHeight || rect.height || 0;
@@ -317,23 +327,29 @@ window.addEventListener('resize', () => {
 
 // Wheel spinning logic
 // Wheel spinning logic (new): idle slow spin + user-triggered spin with smooth deceleration
-function spinWheel() {
-  if (spinning || agents.length === 0 || winnerModalOpen) return;
-  // ensure any previous drumroll loop is cleared before a new spin
-  try { stopDrumroll(); } catch (e) {}
-  spinning = true;
-  spinTriggered = true;
+	function spinWheel() {
+	  if (spinning || agents.length === 0 || winnerModalOpen) return;
+	  // ensure any previous drumroll loop is cleared before a new spin
+	  try { stopDrumroll(); } catch (e) {}
+	  spinning = true;
+	  spinTriggered = true;
 
-  // Spin duration base (global) will scale ramp and deceleration
-  // durationMs is slightly randomized around the global spinDurationMs to provide natural variance
-  const durationMs = Math.max(300, Math.round(spinDurationMs * (0.9 + Math.random() * 0.2)));
-  const durationSec = durationMs / 1000;
+	  // Spin duration base (global) will scale ramp and deceleration.
+	  // Add extra jitter so each spin length feels more unique.
+	  const baseJitter = 0.9 + Math.random() * 0.2;        // 0.9–1.1 (original range)
+	  const extraJitter = 0.85 + Math.random() * 0.3;      // 0.85–1.15
+	  const durationFactor = baseJitter * extraJitter;     // ≈0.76–1.27 overall
+	  const durationMs = Math.max(300, Math.round(spinDurationMs * durationFactor));
+	  const durationSec = durationMs / 1000;
 
-  // Scale peak velocity with overall duration so longer spins are faster
-  const speedScale = Math.max(0.5, durationMs / 5200);
-  const minVel = 6.0 * speedScale; // rad/s
-  const maxVel = 12.0 * speedScale; // rad/s
-  const initialVel = minVel + Math.random() * (maxVel - minVel);
+	  // Scale peak velocity with overall duration so longer spins are faster,
+	  // and add per-spin randomness to how "aggressive" the spin feels.
+	  const speedScaleBase = Math.max(0.5, durationMs / 5200);
+	  const speedJitter = 0.85 + Math.random() * 0.4;      // 0.85–1.25
+	  const speedScale = speedScaleBase * speedJitter;
+	  const minVel = 5.5 * speedScale; // rad/s
+	  const maxVel = 13.0 * speedScale; // rad/s
+	  const initialVel = minVel + Math.random() * Math.max(0.5, (maxVel - minVel));
 
   // Setup ramp: ramp length scales with duration (percentage)
   spinRampTotalMs = Math.max(120, Math.round(durationMs * 0.06));
@@ -485,10 +501,10 @@ function easeInCubic(t) {
 
 // Keep animation progressing when tab is hidden by driving updates with a timer
 let _hiddenDriver = null;
-function startHiddenDriver() {
-  if (_hiddenDriver) return;
-  try { _hiddenDriver = setInterval(() => { animationLoop(performance.now()); }, 100); } catch (e) { _hiddenDriver = null; }
-}
+	function startHiddenDriver() {
+	  if (_hiddenDriver) return;
+	  try { _hiddenDriver = setInterval(() => { animationLoop(performance.now()); }, 160); } catch (e) { _hiddenDriver = null; }
+	}
 function stopHiddenDriver() {
   if (_hiddenDriver) { try { clearInterval(_hiddenDriver); } catch (e) {} _hiddenDriver = null; }
 }

@@ -146,6 +146,15 @@ const mobileBreakpointPx = 768;
 const centerIconMinDesktopPx = 260;
 const centerIconMinMobilePx = 110;
 
+// Respect OS-level reduced motion preferences for lighter rendering
+try {
+  const m = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (m && m.matches) {
+    idleAngularVelocity = 0; // no idle spin when reduced motion is requested
+    spinDurationMs = isMobileViewport() ? 4800 : 6500;
+  }
+} catch (e) {}
+
 // Disable file caching: unregister any existing service workers and clear caches
 (function disableServiceWorkerCaching() {
   if (!('serviceWorker' in navigator)) return;
