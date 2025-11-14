@@ -139,7 +139,9 @@ let spinning = false;
 // animation state
 let angularVelocity = 0; // radians per second
 let angularDecel = 0; // radians per second squared (positive value reduces velocity)
-let idleAngularVelocity = isMobileViewport() ? 0.04 : 0.06; // slightly slower idle on mobile
+// Idle spin speed for the wheel. On mobile, keep this at 0 to avoid
+// constantly redrawing the canvas when the wheel is not actively spinning.
+let idleAngularVelocity = isMobileViewport() ? 0 : 0.06;
 let lastFrameTs = null;
 let spinTriggered = false;
 let idlePaused = false; // when true, idle rotation is suspended (e.g., while winner modal is open)
@@ -202,6 +204,8 @@ const centerIconBorderColor = 'rgba(0, 0, 0, 0.6)';
 const mobileBreakpointPx = 768;
 const centerIconMinDesktopPx = 260;
 const centerIconMinMobilePx = 110;
+// Track whether the main animation loop is currently scheduling frames.
+let animationLoopRunning = false;
 
 // Respect OS-level reduced motion preferences for lighter rendering
 try {

@@ -373,10 +373,18 @@ function spinWheel() {
 
   // disable spin button while spin is in progress
   if (spinBtn) spinBtn.disabled = true;
+  // Ensure the animation loop is running in case it was stopped when idle.
+  try {
+    if (typeof requestAnimationFrame === 'function' && !animationLoopRunning) {
+      requestAnimationFrame(animationLoop);
+    }
+  } catch (e) {}
 }
 
 // Main animation loop to handle idle rotation + active spin
 function animationLoop(ts) {
+  // Mark the loop as active whenever a frame is processed.
+  animationLoopRunning = true;
   if (!lastFrameTs) lastFrameTs = ts;
   const isHidden = (typeof document !== 'undefined' && document.hidden) ? true : false;
   const rawDt = ts - lastFrameTs;
@@ -491,9 +499,18 @@ function animationLoop(ts) {
   }
 
   drawWheel();
-  // When visible, drive via rAF; when hidden, a background timer will call animationLoop
-  if (typeof document === 'undefined' || !document.hidden) {
+  // Decide whether we actually need another frame.
+  // Continue while a spin is active, or while idle rotation is enabled.
+  const needsAnimation =
+    (spinTriggered || spinInDecel) ||
+    (!idlePaused && Math.abs(idleAngularVelocity || 0) > 0.0001);
+
+  // When visible, drive via rAF; when hidden, a background timer will call animationLoop.
+  if ((typeof document === 'undefined' || !document.hidden) && needsAnimation) {
     requestAnimationFrame(animationLoop);
+  } else if (!needsAnimation) {
+    // No more work to do — mark the loop as inactive so it can be restarted on demand.
+    animationLoopRunning = false;
   }
 }
 
@@ -511,16 +528,31 @@ function easeInCubic(t) {
 
 // Keep animation progressing when tab is hidden by driving updates with a timer
 let _hiddenDriver = null;
-	function startHiddenDriver() {
-	  if (_hiddenDriver) return;
-	  try { _hiddenDriver = setInterval(() => { animationLoop(performance.now()); }, 160); } catch (e) { _hiddenDriver = null; }
-	}
+function startHiddenDriver() {
+  if (_hiddenDriver) return;
+  try {
+    _hiddenDriver = setInterval(() => {
+      // Only advance animations in the background while an actual spin is in progress.
+      if (!spinTriggered && !spinInDecel) return;
+      animationLoop(performance.now());
+    }, 160);
+  } catch (e) {
+    _hiddenDriver = null;
+  }
+}
 function stopHiddenDriver() {
   if (_hiddenDriver) { try { clearInterval(_hiddenDriver); } catch (e) {} _hiddenDriver = null; }
 }
 try {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) startHiddenDriver();
-    else { stopHiddenDriver(); try { requestAnimationFrame(animationLoop); } catch (e) {} }
+    else {
+      stopHiddenDriver();
+      try {
+        if (typeof requestAnimationFrame === 'function') {
+          requestAnimationFrame(animationLoop);
+        }
+      } catch (e) {}
+    }
   });
 } catch (e) {}
