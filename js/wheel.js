@@ -1,6 +1,8 @@
+let wheelEffectiveDpr = 1;
+
 function drawWheel() {
-  // Use CSS pixel dimensions (account for devicePixelRatio via setTransform)
-  const dpr = window.devicePixelRatio || 1;
+  // Use CSS pixel dimensions (account for effective devicePixelRatio via setTransform)
+  const dpr = wheelEffectiveDpr || 1;
   const cssWidth = canvas.width / dpr;
   const cssHeight = canvas.height / dpr;
   const centerX = cssWidth / 2;
@@ -254,12 +256,16 @@ function drawWheel() {
 }
 
 // Resize canvas to match CSS size and device pixel ratio
-function resizeCanvas() {
-  const rect = canvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = Math.round(rect.width * dpr);
-  canvas.height = Math.round(rect.height * dpr);
-  // Ensure 1:1 mapping of CSS pixels to drawing commands
+	function resizeCanvas() {
+	  const rect = canvas.getBoundingClientRect();
+	  const rawDpr = window.devicePixelRatio || 1;
+	  // On mobile, cap effective DPR to keep the wheel light-weight and smooth
+	  const maxDpr = (typeof isMobileViewport === 'function' && isMobileViewport()) ? 1.5 : 2;
+	  const dpr = Math.max(1, Math.min(rawDpr, maxDpr));
+	  wheelEffectiveDpr = dpr;
+	  canvas.width = Math.round(rect.width * dpr);
+	  canvas.height = Math.round(rect.height * dpr);
+	  // Ensure 1:1 mapping of CSS pixels to drawing commands
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   drawWheel();
 }

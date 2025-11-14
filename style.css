@@ -11,6 +11,10 @@ body {
 
 /* Hide role filter bar when any modal is open */
 body.modal-open #roleFilterBar { display: none; }
+/* Prevent background scroll while a modal is open */
+body.modal-open {
+  overflow: hidden;
+}
 /* Also hide role filter bar while team feed is visible */
 body.team-feed-visible #roleFilterBar { display: none; }
 /* In overlay/OBS mode, suppress UI modals even if open */
@@ -767,6 +771,17 @@ canvas {
 }
 .teams-btn { right: 64px; }
 
+@media (max-width: 820px) {
+  .settings-btn {
+    top: calc(12px + env(safe-area-inset-top));
+    right: 14px;
+    font-size: 28px;
+  }
+  .teams-btn {
+    right: 58px;
+  }
+}
+
 /* Modal styles */
 .modal {
   position: fixed;
@@ -791,6 +806,60 @@ canvas {
   border-radius: 8px;
   width: 90%;
   max-width: 600px;
+}
+
+/* Mobile-first tuning for modals */
+@media (max-width: 768px) {
+  .modal {
+    align-items: flex-start;
+    justify-content: center;
+    padding: calc(16px + env(safe-area-inset-top)) 12px calc(20px + env(safe-area-inset-bottom));
+  }
+  /* General modal content: take the full width on small screens */
+  .modal-content {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 18px;
+    padding: 14px 14px 12px;
+  }
+  /* Settings / teams sheets: slightly larger radius and taller scroll area */
+  .settings-modal {
+    border-radius: 22px;
+    max-height: calc(100vh - 80px);
+  }
+  .settings-layout {
+    max-height: calc(100vh - 140px);
+  }
+  /* Team modal layout stacks vertically on small screens */
+  #teamsModal .team-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  #teamsModal .team-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "select select"
+      "new save"
+      "delete roll";
+    row-gap: 8px;
+    column-gap: 8px;
+  }
+  #teamsModal #savedTeamsSelect { grid-area: select; width: 100%; }
+  #teamsModal #teamNewBtn { grid-area: new; width: 100%; }
+  #teamsModal #teamSaveBtn { grid-area: save; width: 100%; }
+  #teamsModal #teamDeleteBtn { grid-area: delete; width: 100%; }
+  #teamsModal #teamRollBtn { grid-area: roll; width: 100%; }
+  /* Winner modal: keep compact but allow more width on small screens */
+  #winnerModal .modal-content {
+    max-width: 440px;
+    padding: 20px 20px 22px;
+  }
+  /* Center winner modal vertically and horizontally on mobile */
+  #winnerModal {
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
 }
 
 /* Team modal layout */

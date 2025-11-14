@@ -82,7 +82,7 @@ let spinning = false;
 // animation state
 let angularVelocity = 0; // radians per second
 let angularDecel = 0; // radians per second squared (positive value reduces velocity)
-let idleAngularVelocity = 0.06; // slow idle spin (rad/s)
+let idleAngularVelocity = isMobileViewport() ? 0.04 : 0.06; // slightly slower idle on mobile
 let lastFrameTs = null;
 let spinTriggered = false;
 let idlePaused = false; // when true, idle rotation is suspended (e.g., while winner modal is open)
@@ -104,7 +104,7 @@ let spinDecelDurationMs = 0;
 let spinDecelElapsedMs = 0;
 let spinDecelInitialVelocity = 0;
 // Master spin duration (ms) — everything scales from this value. Tune this to change overall spin feel.
-let spinDurationMs = 8000;
+let spinDurationMs = isMobileViewport() ? 6500 : 8000;
 // overshoot/settle state
 let overshootActive = false;
 let overshootPhase = 0; // 0: to peak, 1: back to target
