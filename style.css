@@ -293,6 +293,25 @@ body.obs-ua .kofi-link {
   }
 }
 
+#siteIntro {
+  max-width: 720px;
+  margin: 24px auto 16px;
+  padding: 0 16px;
+  text-align: center;
+}
+
+#siteIntro h1 {
+  margin: 0 0 8px;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+#siteIntro p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.82);
+}
+
 .loading-gated {
   opacity: 0;
   pointer-events: none;
