@@ -91,8 +91,12 @@
 
   <!-- Sound settings -->
   <!-- Settings cog and modal (sound/customization moved into modal) -->
-  <button id="settingsBtn" class="settings-btn loading-gated" title="Settings">⚙️</button>
-  <button id="teamsBtn" class="settings-btn loading-gated teams-btn" title="Teams">👥</button>
+  <button id="settingsBtn" class="settings-btn loading-gated" title="Settings">
+    <span class="settings-btn-icon" aria-hidden="true">⚙</span>
+  </button>
+  <button id="teamsBtn" class="settings-btn loading-gated teams-btn" title="Teams">
+    <span class="settings-btn-icon" aria-hidden="true">Team Roll 👥</span>
+  </button>
 
   <div id="settingsModal" class="modal" aria-hidden="true">
     <div class="modal-content settings-modal">
