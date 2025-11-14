@@ -55,13 +55,24 @@ body.obs-overlay #winnerModal .modal-button { box-shadow: none !important; }
   display: flex;
   align-items: center;
   gap: 8px;
+  position: relative;
   background: rgba(0,0,0,0.35);
   border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 12px;
-  padding: 6px 10px;
+  border-radius: 6px;
+  padding: 6px 12px 6px 16px;
   transform: translateX(-20px);
   opacity: 0;
   transition: transform 240ms ease, opacity 240ms ease;
+}
+.team-feed-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: rgba(255,255,255,0.9);
+  opacity: 0.9;
 }
 .team-feed-item.entered {
   transform: translateX(0);
@@ -73,8 +84,16 @@ body.obs-overlay #winnerModal .modal-button { box-shadow: none !important; }
   border-radius: 8px;
   object-fit: cover;
 }
-.team-feed-item .tf-player { font-weight: 700; }
-.team-feed-item .tf-role { opacity: 0.8; font-size: 0.85rem; }
+.team-feed-item .tf-player {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+}
+.team-feed-item .tf-role {
+  opacity: 0.85;
+  font-size: 0.8rem;
+}
 
 .team-feed-controls {
   display: flex;
@@ -892,14 +911,43 @@ canvas {
   gap: 8px;
 }
 .team-result-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
+  position: relative;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 8px;
-  padding: 8px 10px;
+  border-radius: 6px;
+  padding: 6px 12px 6px 16px;
+}
+.team-result-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: rgba(255,255,255,0.9);
+}
+.team-result-row > div:first-child {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+}
+.team-result-row > div:nth-child(2) {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  text-align: center;
+  min-width: 70px;
+}
+.team-result-row > div:last-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  font-size: 0.85rem;
 }
 .team-result-row img {
   width: 42px;
