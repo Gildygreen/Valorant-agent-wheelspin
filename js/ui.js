@@ -16,6 +16,7 @@ const roleButtons = [
   { id: 'roleBtnInitiator', role: 'Initiator' },
   { id: 'roleBtnSentinel', role: 'Sentinel' },
 ];
+const agentFilterBtn = document.getElementById('agentFilterBtn');
 
 // Teams modal UI elements
 const teamsBtnEl = document.getElementById('teamsBtn');
@@ -41,6 +42,7 @@ const compController = document.getElementById('compController');
 const compDuelist = document.getElementById('compDuelist');
 const compInitiator = document.getElementById('compInitiator');
 const compSentinel = document.getElementById('compSentinel');
+const wheelEmptyStateEl = document.getElementById('wheelEmptyState');
 
 if (shareWinnerBtn) {
   shareWinnerBtn.disabled = true;
@@ -154,6 +156,16 @@ if (usernameInputUi) {
   usernameInputUi.addEventListener('change', (e) => persist(e.target.value));
 }
 
+function refreshWheelEmptyState() {
+  try {
+    if (!wheelEmptyStateEl) return;
+    const list = Array.isArray(agents) ? agents : [];
+    const hasAgents = list.length > 0;
+    wheelEmptyStateEl.style.display = hasAgents ? 'none' : 'flex';
+    wheelEmptyStateEl.setAttribute('aria-hidden', hasAgents ? 'true' : 'false');
+  } catch (e) {}
+}
+
 // Role filter wiring
 function getCurrentRoleSelection() {
   try {
@@ -175,6 +187,7 @@ function applySelectionAndFilter(selection) {
   try {
     if (typeof applyRoleFilter === 'function') applyRoleFilter(selection);
   } catch (e) {}
+  try { refreshWheelEmptyState(); } catch (e) {}
 }
 
 function wireRoleButtons() {
@@ -379,8 +392,14 @@ if (teamDeleteBtn) {
 
 function agentsByRole(role) {
   try {
-    const list = (typeof allAgents !== 'undefined' && Array.isArray(allAgents)) ? allAgents : agents;
-    return (list || []).filter(a => (a.role || '').toLowerCase() === (role || '').toLowerCase());
+    const list = (typeof allAgents !== 'undefined' && Array.isArray(allAgents) && allAgents.length)
+      ? allAgents
+      : agents;
+    let out = (list || []).filter(a => (a.role || '').toLowerCase() === (role || '').toLowerCase());
+    if (typeof isAgentExcluded === 'function') {
+      out = out.filter((a) => !isAgentExcluded(a));
+    }
+    return out;
   } catch (e) { return []; }
 }
 
@@ -451,6 +470,90 @@ function renderTeamResults(assignments) {
     row.appendChild(role);
     row.appendChild(agent);
     teamResults.appendChild(row);
+  });
+}
+
+// Agent availability list (exclude from wheel)
+const agentListEl = document.getElementById('agentList');
+const agentPoolClearBtn = document.getElementById('agentPoolClearBtn');
+
+function renderAgentAvailabilityList() {
+  if (!agentListEl) return;
+  agentListEl.innerHTML = '';
+  const list = (typeof allAgents !== 'undefined' && Array.isArray(allAgents) && allAgents.length)
+    ? allAgents
+    : (Array.isArray(agents) ? agents : []);
+  if (!list.length) return;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'agent-availability-list';
+
+  list.forEach((agent) => {
+    const excluded = (typeof isAgentExcluded === 'function') ? isAgentExcluded(agent) : false;
+    const include = !excluded;
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'agent-availability-item';
+    if (!include) btn.classList.add('agent-excluded');
+    btn.setAttribute('aria-pressed', include ? 'true' : 'false');
+    btn.setAttribute('title', `${include ? 'In wheel' : 'Excluded'}: ${agent.name || 'Agent'}`);
+
+    const circle = document.createElement('div');
+    circle.className = 'agent-availability-circle';
+
+    const img = document.createElement('img');
+    img.className = 'agent-availability-icon';
+    img.src = agent.img || '';
+    img.alt = agent.name || 'Agent';
+    circle.appendChild(img);
+
+    btn.appendChild(circle);
+
+    btn.addEventListener('click', () => {
+      const currentlyIncluded = !btn.classList.contains('agent-excluded');
+      const nextInclude = !currentlyIncluded;
+      if (typeof setAgentExcluded === 'function') {
+        setAgentExcluded(agent.name, !nextInclude);
+      }
+      if (nextInclude) {
+        btn.classList.remove('agent-excluded');
+        btn.setAttribute('aria-pressed', 'true');
+        btn.setAttribute('title', `In wheel: ${agent.name || 'Agent'}`);
+      } else {
+        btn.classList.add('agent-excluded');
+        btn.setAttribute('aria-pressed', 'false');
+        btn.setAttribute('title', `Excluded: ${agent.name || 'Agent'}`);
+      }
+    });
+
+    wrapper.appendChild(btn);
+  });
+
+  agentListEl.appendChild(wrapper);
+  try { refreshWheelEmptyState(); } catch (e) {}
+}
+
+if (typeof window !== 'undefined') {
+  window.renderAgentAvailabilityList = renderAgentAvailabilityList;
+  window.refreshWheelEmptyState = refreshWheelEmptyState;
+}
+
+if (agentPoolClearBtn) {
+  agentPoolClearBtn.addEventListener('click', () => {
+    try {
+      const list = (typeof allAgents !== 'undefined' && Array.isArray(allAgents) && allAgents.length)
+        ? allAgents
+        : (Array.isArray(agents) ? agents : []);
+      if (Array.isArray(list)) {
+        list.forEach((agent) => {
+          if (agent && agent.name && typeof setAgentExcluded === 'function') {
+            setAgentExcluded(agent.name, false);
+          }
+        });
+      }
+    } catch (e) {}
+    try { refreshWheelEmptyState(); } catch (e) {}
   });
 }
 
@@ -624,7 +727,10 @@ async function animatedTeamRoll(team, randomizeRolesFlag) {
     showTeamFeedUI(false); // start visible, controls disabled until finished
     for (const p of players) {
       // Build pool: primary is role-specific (or Any), then remove already-assigned agents.
-      const allList = (typeof allAgents !== 'undefined' ? allAgents : agents) || [];
+      let allList = (typeof allAgents !== 'undefined' ? allAgents : agents) || [];
+      if (typeof isAgentExcluded === 'function') {
+        allList = allList.filter((a) => !isAgentExcluded(a));
+      }
       const primary = (p.role && p.role !== 'Any') ? agentsByRole(p.role) : allList;
       let pool = Array.isArray(primary) ? primary.slice() : allList.slice();
       // Remove agents already chosen in this session
@@ -971,6 +1077,27 @@ if (teamsBtnEl && teamsModalEl && closeTeamsEl) {
   });
 }
 
+// Agents modal (agent pool) open/close
+const agentsModalEl = document.getElementById('agentsModal');
+const closeAgentsEl = document.getElementById('closeAgents');
+if (agentFilterBtn && agentsModalEl && closeAgentsEl) {
+  agentFilterBtn.addEventListener('click', () => {
+    agentsModalEl.setAttribute('aria-hidden', 'false');
+    try { if (typeof refreshModalOpenClass === 'function') refreshModalOpenClass(); } catch (e) {}
+    try { renderAgentAvailabilityList(); } catch (e) {}
+  });
+  closeAgentsEl.addEventListener('click', () => {
+    agentsModalEl.setAttribute('aria-hidden', 'true');
+    try { if (typeof refreshModalOpenClass === 'function') refreshModalOpenClass(); } catch (e) {}
+  });
+  agentsModalEl.addEventListener('click', (e) => {
+    if (e.target === agentsModalEl) {
+      agentsModalEl.setAttribute('aria-hidden', 'true');
+      try { if (typeof refreshModalOpenClass === 'function') refreshModalOpenClass(); } catch (err) {}
+    }
+  });
+}
+
 // Winner modal close handlers
 if (winnerModal && closeWinner) {
   closeWinner.addEventListener('click', () => {
@@ -1014,6 +1141,11 @@ document.addEventListener('keydown', (e) => {
     const teamsOpen = teamsModalEl && teamsModalEl.getAttribute('aria-hidden') === 'false';
     if (teamsOpen) {
       teamsModalEl.setAttribute('aria-hidden', 'true');
+      handled = true;
+    }
+    const agentsOpen = agentsModalEl && agentsModalEl.getAttribute('aria-hidden') === 'false';
+    if (agentsOpen) {
+      agentsModalEl.setAttribute('aria-hidden', 'true');
       handled = true;
     }
     try { if (typeof refreshModalOpenClass === 'function') refreshModalOpenClass(); } catch (e) {}

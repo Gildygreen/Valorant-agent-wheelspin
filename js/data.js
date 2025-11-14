@@ -1,5 +1,6 @@
 const AGENT_SOUND_PREFS_KEY = 'agentSoundPrefs';
 const ROLE_FILTER_KEY = 'roleFilterSelection';
+const EXCLUDED_AGENTS_KEY = 'excludedAgents';
 const MAX_AGENT_SOUND_VARIANTS = 8;
 const agentSoundPrefs = loadAgentSoundPrefs();
 const agentSoundExistenceCache = new Map();
@@ -38,6 +39,25 @@ function persistAgentSoundPrefs() {
   } catch (e) {}
 }
 
+function loadExcludedAgentKeys() {
+  try {
+    const raw = localStorage.getItem(EXCLUDED_AGENTS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+let excludedAgentKeys = new Set(loadExcludedAgentKeys().map((name) => normalizedAgentKey(name)));
+
+function persistExcludedAgents() {
+  try {
+    localStorage.setItem(EXCLUDED_AGENTS_KEY, JSON.stringify(Array.from(excludedAgentKeys)));
+  } catch (e) {}
+}
+
 function normalizedAgentKey(name) {
   return (name || '').toLowerCase();
 }
@@ -52,18 +72,16 @@ function seedAgentDefaultSounds(list) {
     if (!agent) return;
     const slug = slugifyAgentName(agent.name);
     agent._soundSlug = slug;
-    if (!agent.winSounds || !agent.winSounds.length) {
-      // Prefer manifest-defined voice lines when available so all variants
-      // are usable immediately (even before opening the per-agent settings UI).
-      const applied = applyManifestSounds(agent);
-      if (!applied) {
-        agent.winSounds = [{
-          label: 'Default',
-          path: `assets/sounds/${slug}.mp3`,
-          isDefault: true,
-          enabled: true,
-        }];
-      }
+    // Prefer manifest-defined voice lines when available so all variants
+    // are usable immediately (even before opening the per-agent settings UI).
+    const applied = applyManifestSounds(agent);
+    if (!applied && (!agent.winSounds || !agent.winSounds.length)) {
+      agent.winSounds = [{
+        label: 'Default',
+        path: `assets/sounds/${slug}.mp3`,
+        isDefault: true,
+        enabled: true,
+      }];
     }
     const key = normalizedAgentKey(agent.name);
     if (!agentOrderMap.has(key)) {
@@ -74,6 +92,20 @@ function seedAgentDefaultSounds(list) {
 }
 
 seedAgentDefaultSounds(agents);
+
+function isAgentExcluded(agentOrName) {
+  const key = normalizedAgentKey(typeof agentOrName === 'string' ? agentOrName : agentOrName?.name);
+  if (!key) return false;
+  return excludedAgentKeys.has(key);
+}
+
+function setAgentExcludedInternal(agentName, excluded) {
+  const key = normalizedAgentKey(agentName);
+  if (!key) return;
+  if (excluded) excludedAgentKeys.add(key);
+  else excludedAgentKeys.delete(key);
+  persistExcludedAgents();
+}
 
 function ensureAgentHasEnabledSound(agent) {
   if (!agent?.winSounds?.length) return;
@@ -289,6 +321,8 @@ async function preloadAgentSoundVariants(list = []) {
   try { applyRandomizeSoundRules(); } catch (e) {}
   try { populatePerAgentSettings(); } catch (e) {}
   try { populateDebugAgentSelect(); } catch (e) {}
+  try { if (typeof window.renderAgentAvailabilityList === 'function') window.renderAgentAvailabilityList(); } catch (e) {}
+  try { if (typeof window.refreshWheelEmptyState === 'function') window.refreshWheelEmptyState(); } catch (e) {}
   try { markWheelAssetsReady(); } catch (e) {}
 })();
 
@@ -356,9 +390,10 @@ async function loadAgentsFromValorantApi() {
     allAgents = fetched;
     const selectedRoles = getStoredRoles();
     if (selectedRoles && selectedRoles.length) {
-      agents = allAgents.filter(a => a.role && selectedRoles.includes(a.role));
+      const base = allAgents.filter(a => a.role && selectedRoles.includes(a.role));
+      agents = base.filter(a => !isAgentExcluded(a));
     } else {
-      agents = allAgents;
+      agents = allAgents.filter(a => !isAgentExcluded(a));
     }
     applyRandomizeSoundRules();
     // reset pointer-relative tracking so tick detection doesn't fire spuriously
@@ -367,6 +402,7 @@ async function loadAgentsFromValorantApi() {
     populatePerAgentSettings();
     populateDebugAgentSelect();
     try { if (typeof window.refreshRoleFilterIcons === 'function') window.refreshRoleFilterIcons(ROLE_ICONS); } catch (e) {}
+    try { if (typeof window.refreshWheelEmptyState === 'function') window.refreshWheelEmptyState(); } catch (e) {}
     try { markWheelAssetsReady(); } catch (e) {}
     try { if (typeof window.refreshTeamCompIcons === 'function') window.refreshTeamCompIcons(ROLE_ICONS); } catch (e) {}
   } catch (e) {
@@ -385,17 +421,43 @@ window.applyRoleFilter = function applyRoleFilter(selectedRoles = []) {
     persistStoredRoles(list);
     if (!allAgents || !allAgents.length) { drawWheel(); return; }
     const hasRoleData = allAgents.some(a => !!a.role);
-    if (!list.length || !hasRoleData) {
-      agents = allAgents;
-    } else {
-      agents = allAgents.filter(a => a.role && list.includes(a.role));
-    }
+    const base = (!list.length || !hasRoleData)
+      ? allAgents
+      : allAgents.filter(a => a.role && list.includes(a.role));
+    agents = base.filter(a => !isAgentExcluded(a));
     // Redraw and refresh dependent UIs
     prevRel = null;
     drawWheel();
     try { populatePerAgentSettings(); } catch (e) {}
     try { populateDebugAgentSelect(); } catch (e) {}
+    try { if (typeof window.refreshWheelEmptyState === 'function') window.refreshWheelEmptyState(); } catch (e) {}
   } catch (e) {}
 };
 
 window.getRoleFilterSelection = getStoredRoles;
+
+function setAgentExcludedPublic(agentName, excluded) {
+  setAgentExcludedInternal(agentName, excluded);
+  try {
+    // Re-apply current role filter so the wheel reflects updated exclusions
+    const currentRoles = getStoredRoles();
+    window.applyRoleFilter(currentRoles);
+  } catch (e) {
+    try { drawWheel(); } catch (err) {}
+  }
+  try {
+    if (typeof window.refreshWheelEmptyState === 'function') {
+      window.refreshWheelEmptyState();
+    }
+  } catch (e) {}
+  try {
+    if (typeof window.renderAgentAvailabilityList === 'function') {
+      window.renderAgentAvailabilityList();
+    }
+  } catch (e) {}
+}
+
+if (typeof window !== 'undefined') {
+  window.isAgentExcluded = isAgentExcluded;
+  window.setAgentExcluded = setAgentExcludedPublic;
+}

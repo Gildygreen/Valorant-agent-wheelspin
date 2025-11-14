@@ -23,6 +23,9 @@
     <button id="roleBtnSentinel" class="role-btn" type="button" title="Sentinels" aria-pressed="false" data-role="Sentinel">
       <img alt="Sentinel" />
     </button>
+    <button id="agentFilterBtn" class="role-btn" type="button" title="Filter agents on wheel">
+      <span aria-hidden="true">≡</span>
+    </button>
   </nav>
 
   <!-- Team results feed (slides in entries from the left) -->
@@ -46,6 +49,10 @@
   <div id="wheelContainer" class="loading">
     <div id="wheelLoading" class="wheel-loading" role="status" aria-live="polite">
       <div class="loading-spinner" aria-hidden="true"></div>
+    </div>
+    <div id="wheelEmptyState" class="wheel-empty" aria-hidden="true">
+      <p>No agents available</p>
+      <span>Add agents back via the Agent Pool.</span>
     </div>
     <canvas id="wheelCanvas" width="880" height="880"></canvas>
     <div id="wheelMarker" aria-hidden="true"></div>
@@ -71,8 +78,16 @@
     </div>
   </div>
 
-  <!-- Agent list -->
-  <div id="agentList"></div>
+  <!-- Agent pool modal -->
+  <div id="agentsModal" class="modal" aria-hidden="true">
+    <div class="modal-content settings-modal">
+      <span id="closeAgents" class="close" role="button" aria-label="Close">&times;</span>
+      <h3>Agent Pool</h3>
+      <p class="settings-subtitle">Tap agents to toggle them in or out of the wheel. This applies to solo spins and team rolls.</p>
+      <button id="agentPoolClearBtn" type="button" class="modal-button agent-pool-clear-btn">Enable all agents</button>
+      <div id="agentList"></div>
+    </div>
+  </div>
 
   <!-- Sound settings -->
   <!-- Settings cog and modal (sound/customization moved into modal) -->

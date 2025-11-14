@@ -22,6 +22,8 @@ const usernameInput = document.getElementById('usernameInput');
 const teamsBtn = document.getElementById('teamsBtn');
 const teamsModal = document.getElementById('teamsModal');
 const closeTeams = document.getElementById('closeTeams');
+const agentsModal = document.getElementById('agentsModal');
+const closeAgents = document.getElementById('closeAgents');
 const debugPanel = document.getElementById('debugPanel');
 const debugAgentSelect = document.getElementById('debugAgentSelect');
 const debugShowWinnerBtn = document.getElementById('debugShowWinnerBtn');
@@ -284,7 +286,8 @@ function refreshModalOpenClass() {
   try {
     const settingsOpen = settingsModal && settingsModal.getAttribute('aria-hidden') === 'false';
     const teamsOpen = teamsModal && teamsModal.getAttribute('aria-hidden') === 'false';
-    const open = !!winnerModalOpen || !!settingsOpen || !!teamsOpen;
+    const agentsOpen = agentsModal && agentsModal.getAttribute('aria-hidden') === 'false';
+    const open = !!winnerModalOpen || !!settingsOpen || !!teamsOpen || !!agentsOpen;
     if (document && document.body && document.body.classList) {
       document.body.classList.toggle('modal-open', open);
     }
