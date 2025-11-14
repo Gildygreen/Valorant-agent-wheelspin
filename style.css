@@ -20,8 +20,11 @@ body.team-feed-visible #roleFilterBar { display: none; }
 /* Hide role filter bar while the wheel is spinning */
 body.wheel-spinning #roleFilterBar { display: none; }
 /* In OBS browser sources, hide chrome based on obs-ui-hidden, but keep the toggle visible */
-body.obs-ua.obs-ui-hidden .settings-btn,
-body.obs-ua.obs-ui-hidden .kofi-link {
+body.obs-ua.obs-ui-hidden .settings-btn {
+  display: none !important;
+}
+/* Ko-fi link is always hidden in OBS */
+body.obs-ua .kofi-link {
   display: none !important;
 }
 /* In overlay/OBS mode, suppress UI modals even if open */
@@ -92,15 +95,23 @@ body.obs-overlay #winnerModal .modal-button { box-shadow: none !important; }
   border-radius: 8px;
   object-fit: cover;
 }
+.team-feed-item > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 .team-feed-item .tf-player {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: clamp(0.65rem, 0.48rem + 0.35vw, 0.9rem);
+  text-align: center;
 }
 .team-feed-item .tf-role {
   opacity: 0.85;
   font-size: clamp(0.75rem, 0.55rem + 0.3vw, 0.95rem);
+  text-align: center;
 }
 
 /* Ko-fi support link */
