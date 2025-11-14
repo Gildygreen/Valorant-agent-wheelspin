@@ -17,6 +17,8 @@ body.modal-open {
 }
 /* Also hide role filter bar while team feed is visible */
 body.team-feed-visible #roleFilterBar { display: none; }
+/* Hide role filter bar while the wheel is spinning */
+body.wheel-spinning #roleFilterBar { display: none; }
 /* In OBS browser sources, hide chrome based on obs-ui-hidden, but keep the toggle visible */
 body.obs-ua.obs-ui-hidden .settings-btn,
 body.obs-ua.obs-ui-hidden .kofi-link {

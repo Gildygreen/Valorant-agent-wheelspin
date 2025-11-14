@@ -327,12 +327,17 @@ window.addEventListener('resize', () => {
 
 // Wheel spinning logic
 // Wheel spinning logic (new): idle slow spin + user-triggered spin with smooth deceleration
-	function spinWheel() {
-	  if (spinning || agents.length === 0 || winnerModalOpen) return;
-	  // ensure any previous drumroll loop is cleared before a new spin
-	  try { stopDrumroll(); } catch (e) {}
-	  spinning = true;
-	  spinTriggered = true;
+function spinWheel() {
+  if (spinning || agents.length === 0 || winnerModalOpen) return;
+  // ensure any previous drumroll loop is cleared before a new spin
+  try { stopDrumroll(); } catch (e) {}
+  spinning = true;
+  spinTriggered = true;
+  try {
+    if (document && document.body && document.body.classList) {
+      document.body.classList.add('wheel-spinning');
+    }
+  } catch (e) {}
 
 	  // Spin duration base (global) will scale ramp and deceleration.
 	  // Add extra jitter so each spin length feels more unique.
@@ -420,6 +425,11 @@ function animationLoop(ts) {
         spinTriggered = false;
         spinInDecel = false;
         spinning = false;
+        try {
+          if (document && document.body && document.body.classList) {
+            document.body.classList.remove('wheel-spinning');
+          }
+        } catch (e) {}
         angularVelocity = 0;
         angularDecel = 0;
         // determine winner and show modal immediately (no overshoot/settle snap)
