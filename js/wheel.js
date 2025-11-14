@@ -15,7 +15,10 @@ function renderWheelToBuffer(radius, isMobile) {
   if (!agents || !agents.length || radius <= 0) {
     return;
   }
-  const size = Math.max(2, Math.floor(radius * 2));
+  // Add a margin around the circle so slice shadows and glow never clip
+  // against the offscreen buffer edges (which would show up at N/S/E/W).
+  const shadowMargin = Math.ceil(radius * 0.1);
+  const size = Math.max(2, Math.floor(radius * 2 + shadowMargin * 2));
   if (!wheelBufferCanvas) {
     wheelBufferCanvas = document.createElement('canvas');
     wheelBufferCtx = wheelBufferCanvas.getContext('2d');
@@ -187,6 +190,30 @@ function drawWheel(invalidateBuffer = false) {
       size
     );
     ctx.restore();
+
+    // Soft global shadow under the wheel to avoid any perceived clipping
+    // at the cardinal directions. This shadow is drawn in screen space
+    // and does not depend on the offscreen buffer bounds.
+    try {
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.globalCompositeOperation = 'destination-over';
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.closePath();
+      const shadowScale = isMobile ? 0.75 : 0.9;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+      ctx.shadowBlur = shadowScale * Math.max(10, radius * 0.05);
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = shadowScale * Math.max(6, radius * 0.05);
+      // Slightly dark fill just to give the shadow something to emanate from;
+      // it will sit underneath the wheel due to destination-over.
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+      ctx.fill();
+      ctx.restore();
+    } catch (e) {
+      // ignore shadow render errors
+    }
   }
 
   // Draw agent images in screen space so they always remain upright
