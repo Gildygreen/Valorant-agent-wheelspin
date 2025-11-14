@@ -19,8 +19,19 @@ function getWinSoundPath(agent) {
   const available = getAvailableAgentSounds(agent);
   if (!available.length) return null;
   if (randomizeWinSounds && available.length > 1) {
-    const idx = Math.floor(Math.random() * available.length);
-    return available[idx]?.path || null;
+    // Prefer not to repeat the same line for the same agent twice in a row
+    const lastPath = agent._lastWinSoundPath || null;
+    let pool = available;
+    if (lastPath) {
+      const withoutLast = available.filter((s) => s.path !== lastPath);
+      if (withoutLast.length) pool = withoutLast;
+    }
+    const idx = Math.floor(Math.random() * pool.length);
+    const chosen = pool[idx];
+    if (chosen && chosen.path) {
+      try { agent._lastWinSoundPath = chosen.path; } catch (e) {}
+      return chosen.path;
+    }
   }
   const defaultSound = available.find((s) => s.isDefault);
   return (defaultSound || available[0])?.path || null;

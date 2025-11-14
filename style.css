@@ -54,7 +54,7 @@ body.obs-overlay #winnerModal .modal-button { box-shadow: none !important; }
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-width: clamp(230px, 22vw, 420px);
+  min-width: clamp(230px, 15vw, 420px);
   max-height: calc(100vh - 120px);
   overflow: auto;
   z-index: 9;
@@ -170,6 +170,7 @@ body.obs-ua .kofi-link {
   border: 1px solid rgba(255,255,255,0.12);
   padding: 6px;
   border-radius: 10px;
+  justify-content: center;
 }
 .team-feed-copy,
 .team-feed-close {

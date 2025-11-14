@@ -53,12 +53,17 @@ function seedAgentDefaultSounds(list) {
     const slug = slugifyAgentName(agent.name);
     agent._soundSlug = slug;
     if (!agent.winSounds || !agent.winSounds.length) {
-      agent.winSounds = [{
-        label: 'Default',
-        path: `assets/sounds/${slug}.mp3`,
-        isDefault: true,
-        enabled: true,
-      }];
+      // Prefer manifest-defined voice lines when available so all variants
+      // are usable immediately (even before opening the per-agent settings UI).
+      const applied = applyManifestSounds(agent);
+      if (!applied) {
+        agent.winSounds = [{
+          label: 'Default',
+          path: `assets/sounds/${slug}.mp3`,
+          isDefault: true,
+          enabled: true,
+        }];
+      }
     }
     const key = normalizedAgentKey(agent.name);
     if (!agentOrderMap.has(key)) {
