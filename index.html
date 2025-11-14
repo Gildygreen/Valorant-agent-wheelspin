@@ -120,6 +120,16 @@
       <div class="settings-layout">
         <p class="settings-subtitle">Tap agents to toggle them in or out of the wheel. This applies to solo spins and team rolls.</p>
         <button id="agentPoolClearBtn" type="button" class="modal-button agent-pool-clear-btn">Enable all agents</button>
+        <div class="agent-preset-row">
+          <select id="agentPresetSelect" title="Agent presets">
+            <option value="">No preset</option>
+          </select>
+          <input id="agentPresetNameInput" type="text" class="agent-preset-name-input" placeholder="Preset name" />
+          <button id="agentPresetNewBtn" type="button" class="modal-button">New</button>
+          <button id="agentPresetSaveBtn" type="button" class="modal-button">Save</button>
+          <button id="agentPresetDeleteBtn" type="button" class="modal-button">Delete</button>
+        </div>
+        <p id="agentPresetStatus" class="settings-status"></p>
         <div id="agentList"></div>
       </div>
     </div>
@@ -149,6 +159,11 @@
           <div class="setting-row">
             <label class="slider-label" for="pointerColor">Pointer color</label>
             <input type="color" id="pointerColor" value="#ffd45c" />
+          </div>
+          <p id="optionsStatus" class="settings-status"></p>
+          <div class="setting-row options-actions">
+            <button id="shareSetupBtn" class="modal-button modal-settings-btn" type="button">Share setup</button>
+            <button id="resetAllBtn" class="modal-button modal-settings-btn" type="button">Reset all settings</button>
           </div>
         </section>
 

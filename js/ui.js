@@ -9,6 +9,9 @@ const agentWinVolumeLabel = document.getElementById('agentVolumeLabel');
 const tickVolumeLabel = document.getElementById('tickVolumeLabel');
 const pointerColorInput = document.getElementById('pointerColor');
 const usernameInputUi = document.getElementById('usernameInput');
+const shareSetupBtn = document.getElementById('shareSetupBtn');
+const resetAllBtn = document.getElementById('resetAllBtn');
+const optionsStatus = document.getElementById('optionsStatus');
 const roleFilterBar = document.getElementById('roleFilterBar');
 const roleButtons = [
   { id: 'roleBtnController', role: 'Controller' },
@@ -44,6 +47,44 @@ const compDuelist = document.getElementById('compDuelist');
 const compInitiator = document.getElementById('compInitiator');
 const compSentinel = document.getElementById('compSentinel');
 const wheelEmptyStateEl = document.getElementById('wheelEmptyState');
+
+// Parse shared setup state from URL (if present) so it can be applied
+// once agents and UI are fully initialized.
+let __sharedSetupState = null;
+(function parseSharedSetupFromUrl() {
+  try {
+    const url = new URL(window.location.href);
+    const encoded = url.searchParams.get('state');
+    if (!encoded) return;
+    let json = null;
+    try {
+      json = atob(encoded);
+    } catch (e) {
+      // URL-safe base64 fallback
+      try { json = atob(encoded.replace(/-/g, '+').replace(/_/g, '/')); } catch (err) { return; }
+    }
+    const obj = JSON.parse(json);
+    if (obj && typeof obj === 'object') {
+      __sharedSetupState = obj;
+    }
+  } catch (e) {}
+})();
+
+function setOptionsStatus(message, kind) {
+  if (!optionsStatus) return;
+  optionsStatus.textContent = message || '';
+  optionsStatus.classList.remove('settings-status--success', 'settings-status--error');
+  if (kind === 'success') optionsStatus.classList.add('settings-status--success');
+  else if (kind === 'error') optionsStatus.classList.add('settings-status--error');
+}
+
+function setAgentPresetStatus(message, kind) {
+  if (!agentPresetStatus) return;
+  agentPresetStatus.textContent = message || '';
+  agentPresetStatus.classList.remove('settings-status--success', 'settings-status--error');
+  if (kind === 'success') agentPresetStatus.classList.add('settings-status--success');
+  else if (kind === 'error') agentPresetStatus.classList.add('settings-status--error');
+}
 
 if (shareWinnerBtn) {
   shareWinnerBtn.disabled = true;
@@ -155,6 +196,120 @@ if (usernameInputUi) {
   };
   usernameInputUi.addEventListener('input', (e) => persist(e.target.value));
   usernameInputUi.addEventListener('change', (e) => persist(e.target.value));
+}
+
+// Share setup button: encode current configuration into the URL and copy it
+// to the clipboard so it can be shared with friends.
+if (shareSetupBtn) {
+  shareSetupBtn.addEventListener('click', async () => {
+    try {
+      const state = buildShareableState();
+      const json = JSON.stringify(state);
+      const encoded = btoa(json);
+      const url = new URL(window.location.href);
+      url.searchParams.set('state', encoded);
+      const shareUrl = url.toString();
+      let copied = false;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(shareUrl);
+          copied = true;
+        }
+      } catch (e) {}
+      if (!copied) {
+        // Fallback: surface the URL in the modal for manual copy
+        setOptionsStatus(`Copy blocked. Share this link manually:\n${shareUrl}`, 'error');
+      } else {
+        setOptionsStatus('Shareable setup link copied to clipboard.', 'success');
+      }
+    } catch (e) {
+      setOptionsStatus('Failed to generate shareable link.', 'error');
+    }
+  });
+}
+
+// Reset all settings to defaults: filters, exclusions, audio, options,
+// and team configuration (but not saved presets).
+if (resetAllBtn) {
+  resetAllBtn.addEventListener('click', () => {
+    try {
+      // Clear role filters and exclusions
+      if (typeof window.applyRoleFilter === 'function') {
+        window.applyRoleFilter([]);
+      }
+      try {
+        let list = (typeof allAgents !== 'undefined' && Array.isArray(allAgents) && allAgents.length)
+          ? allAgents
+          : (Array.isArray(agents) ? agents : []);
+        if (Array.isArray(list) && typeof window.setAgentExcluded === 'function') {
+          list.forEach((agent) => {
+            if (agent && agent.name) window.setAgentExcluded(agent.name, false);
+          });
+        }
+      } catch (e) {}
+
+      // Reset options
+      if (usernameInputUi) usernameInputUi.value = '';
+      try {
+        playerName = '';
+        localStorage.setItem('playerName', '');
+      } catch (e) {}
+      try {
+        const defaultColor = '#ffd45c';
+        if (pointerColorInput) pointerColorInput.value = defaultColor;
+        window.pointerColor = defaultColor;
+        localStorage.setItem('pointerColor', defaultColor);
+      } catch (e) {}
+
+      // Reset audio settings
+      try {
+        randomizeWinSounds = true;
+        if (randomizeWinSoundsToggle) randomizeWinSoundsToggle.checked = true;
+        localStorage.setItem('randomizeWinSounds', JSON.stringify(randomizeWinSounds));
+        if (typeof applyRandomizeSoundRules === 'function') applyRandomizeSoundRules();
+        if (typeof updatePerAgentSectionVisibility === 'function') updatePerAgentSectionVisibility();
+      } catch (e) {}
+      try {
+        tickEnabled = true;
+        if (tickEnabledToggle) tickEnabledToggle.checked = true;
+        localStorage.setItem('tickEnabled', JSON.stringify(tickEnabled));
+      } catch (e) {}
+      try {
+        tickVolume = 0.5;
+        if (tickVolumeRange) tickVolumeRange.value = tickVolume;
+        if (tickVolumeLabel) tickVolumeLabel.textContent = '50%';
+        localStorage.setItem('tickVolume', String(tickVolume));
+      } catch (e) {}
+      try {
+        drumEnabled = true;
+        if (drumrollEnabledToggle) drumrollEnabledToggle.checked = true;
+        localStorage.setItem('drumEnabled', JSON.stringify(drumEnabled));
+      } catch (e) {}
+      try {
+        drumVolume = 0.5;
+        if (drumrollVolumeRange) drumrollVolumeRange.value = drumVolume;
+        if (drumrollVolumeLabel) drumrollVolumeLabel.textContent = '50%';
+        localStorage.setItem('drumVolume', String(drumVolume));
+      } catch (e) {}
+      try {
+        agentWinVolume = 0.5;
+        if (agentWinVolumeRange) agentWinVolumeRange.value = agentWinVolume;
+        if (agentWinVolumeLabel) agentWinVolumeLabel.textContent = '50%';
+        localStorage.setItem('agentWinVolume', String(agentWinVolume));
+      } catch (e) {}
+
+      // Reset team configuration (but keep saved teams)
+      try {
+        clearTeamForm();
+        if (teamRandomizeRoles) teamRandomizeRoles.checked = false;
+      } catch (e) {}
+
+      try { updateTeamRolesVisibility(); } catch (e) {}
+      try { updatePlayerRowsForTeamSize(); updateCompInputsMax(); enforceCompSum(); } catch (e) {}
+      try { updateTeamRollButtonState(); } catch (e) {}
+      setOptionsStatus('Settings reset to defaults.', 'success');
+    } catch (e) {}
+  });
 }
 
 function refreshWheelEmptyState() {
@@ -326,13 +481,38 @@ function clearTeamForm() {
   try { updatePlayerRowsForTeamSize(); } catch (e) {}
 }
 function collectTeamFromForm() {
+  const { roleFilter, excludedAgents } = getCurrentFilterState();
   return {
     name: (teamNameInput?.value || '').trim() || 'Team',
     players: getFormPlayers(),
     comp: getRoleComposition(),
     randomize: !!(teamRandomizeRoles && teamRandomizeRoles.checked),
     size: getTeamSize(),
+    roleFilter,
+    excludedAgents,
   };
+}
+
+function getCurrentFilterState() {
+  let roleFilter = null;
+  let excludedAgents = null;
+  try {
+    if (typeof window.getRoleFilterSelection === 'function') {
+      const sel = window.getRoleFilterSelection();
+      if (Array.isArray(sel)) roleFilter = sel;
+    }
+  } catch (e) {}
+  try {
+    let list = (typeof allAgents !== 'undefined' && Array.isArray(allAgents) && allAgents.length)
+      ? allAgents
+      : (Array.isArray(agents) ? agents : []);
+    if (typeof isAgentExcluded === 'function' && Array.isArray(list)) {
+      excludedAgents = list
+        .filter((a) => a && a.name && isAgentExcluded(a))
+        .map((a) => a.name);
+    }
+  } catch (e) {}
+  return { roleFilter, excludedAgents };
 }
 function populateFormFromTeam(team) {
   if (!team) return;
@@ -347,6 +527,209 @@ function populateFormFromTeam(team) {
   try { updatePlayerRowsForTeamSize(); updateCompInputsMax(); enforceCompSum(); } catch (e) {}
 }
 
+function applyTeamPresetFilters(team) {
+  if (!team) return;
+  try {
+    if (Array.isArray(team.roleFilter) && typeof window.applyRoleFilter === 'function') {
+      window.applyRoleFilter(team.roleFilter);
+    }
+  } catch (e) {}
+  try {
+    if (Array.isArray(team.excludedAgents) && typeof window.setAgentExcluded === 'function') {
+      const targetNames = new Set(team.excludedAgents.map((n) => String(n || '').toLowerCase()));
+      let list = (typeof allAgents !== 'undefined' && Array.isArray(allAgents) && allAgents.length)
+        ? allAgents
+        : (Array.isArray(agents) ? agents : []);
+      if (Array.isArray(list)) {
+        list.forEach((agent) => {
+          const key = (agent && agent.name) ? agent.name.toLowerCase() : '';
+          if (!key) return;
+          const shouldExclude = targetNames.has(key);
+          window.setAgentExcluded(agent.name, shouldExclude);
+        });
+      }
+    }
+  } catch (e) {}
+}
+
+function buildShareableState() {
+  const state = {};
+  try {
+    state.filters = getCurrentFilterState();
+  } catch (e) {}
+  try {
+    state.team = collectTeamFromForm();
+  } catch (e) {}
+  try {
+    state.options = {
+      username: (typeof playerName === 'string' ? playerName : '') || '',
+      pointerColor: (typeof window.pointerColor === 'string' ? window.pointerColor : '#ffd45c'),
+    };
+  } catch (e) {}
+  try {
+    state.audio = {
+      randomizeWinSounds: !!randomizeWinSounds,
+      agentWinVolume,
+      tickEnabled: !!tickEnabled,
+      tickVolume,
+      drumEnabled: !!drumEnabled,
+      drumVolume,
+    };
+  } catch (e) {}
+  try {
+    state.spin = {
+      durationMs: spinDurationMs,
+    };
+  } catch (e) {}
+  try {
+    const active = {};
+    if (savedTeamsSelect) {
+      const idx = parseInt(savedTeamsSelect.value, 10);
+      const teams = loadTeams();
+      if (!isNaN(idx) && teams[idx]) {
+        active.teamPreset = teams[idx].name || null;
+      }
+    }
+    if (agentPresetSelect) {
+      const idx = parseInt(agentPresetSelect.value, 10);
+      const presets = loadAgentPresets();
+      if (!isNaN(idx) && presets[idx]) {
+        active.agentPreset = presets[idx].name || null;
+      }
+    }
+    state.activePresets = active;
+  } catch (e) {}
+  return state;
+}
+
+function applySharedSetupState(obj) {
+  if (!obj || typeof obj !== 'object') return;
+  try {
+    if (obj.filters && typeof window.applyRoleFilter === 'function') {
+      const f = obj.filters;
+      if (Array.isArray(f.roleFilter)) {
+        window.applyRoleFilter(f.roleFilter);
+      }
+      if (Array.isArray(f.excludedAgents) && typeof window.setAgentExcluded === 'function') {
+        const targetNames = new Set(f.excludedAgents.map((n) => String(n || '').toLowerCase()));
+        let list = (typeof allAgents !== 'undefined' && Array.isArray(allAgents) && allAgents.length)
+          ? allAgents
+          : (Array.isArray(agents) ? agents : []);
+        if (Array.isArray(list)) {
+          list.forEach((agent) => {
+            const key = (agent && agent.name) ? agent.name.toLowerCase() : '';
+            if (!key) return;
+            const shouldExclude = targetNames.has(key);
+            window.setAgentExcluded(agent.name, shouldExclude);
+          });
+        }
+      }
+    }
+  } catch (e) {}
+
+  try {
+    if (obj.team) {
+      populateFormFromTeam(obj.team);
+    }
+  } catch (e) {}
+
+  try {
+    if (obj.options) {
+      if (typeof obj.options.username === 'string') {
+        const v = obj.options.username;
+        if (usernameInputUi) usernameInputUi.value = v;
+        playerName = v;
+        try { localStorage.setItem('playerName', v); } catch (e) {}
+      }
+      if (obj.options.pointerColor && pointerColorInput) {
+        const val = normalizeHex(obj.options.pointerColor) || '#ffd45c';
+        pointerColorInput.value = val;
+        window.pointerColor = val;
+        try { localStorage.setItem('pointerColor', val); } catch (e) {}
+      }
+    }
+  } catch (e) {}
+
+  try {
+    if (obj.audio) {
+      if (typeof obj.audio.randomizeWinSounds === 'boolean' && randomizeWinSoundsToggle) {
+        randomizeWinSounds = obj.audio.randomizeWinSounds;
+        randomizeWinSoundsToggle.checked = randomizeWinSounds;
+        try { localStorage.setItem('randomizeWinSounds', JSON.stringify(randomizeWinSounds)); } catch (e) {}
+      }
+      if (typeof obj.audio.agentWinVolume === 'number' && agentWinVolumeRange) {
+        agentWinVolume = obj.audio.agentWinVolume;
+        agentWinVolumeRange.value = agentWinVolume;
+        if (agentWinVolumeLabel) agentWinVolumeLabel.textContent = Math.round(agentWinVolume * 100) + '%';
+        try { localStorage.setItem('agentWinVolume', String(agentWinVolume)); } catch (e) {}
+      }
+      if (typeof obj.audio.tickEnabled === 'boolean' && tickEnabledToggle) {
+        tickEnabled = obj.audio.tickEnabled;
+        tickEnabledToggle.checked = tickEnabled;
+        try { localStorage.setItem('tickEnabled', JSON.stringify(tickEnabled)); } catch (e) {}
+      }
+      if (typeof obj.audio.tickVolume === 'number' && tickVolumeRange) {
+        tickVolume = obj.audio.tickVolume;
+        tickVolumeRange.value = tickVolume;
+        if (tickVolumeLabel) tickVolumeLabel.textContent = Math.round(tickVolume * 100) + '%';
+        try { localStorage.setItem('tickVolume', String(tickVolume)); } catch (e) {}
+      }
+      if (typeof obj.audio.drumEnabled === 'boolean' && drumrollEnabledToggle) {
+        drumEnabled = obj.audio.drumEnabled;
+        drumrollEnabledToggle.checked = drumEnabled;
+        try { localStorage.setItem('drumEnabled', JSON.stringify(drumEnabled)); } catch (e) {}
+      }
+      if (typeof obj.audio.drumVolume === 'number' && drumrollVolumeRange) {
+        drumVolume = obj.audio.drumVolume;
+        drumrollVolumeRange.value = drumVolume;
+        if (drumrollVolumeLabel) drumrollVolumeLabel.textContent = Math.round(drumVolume * 100) + '%';
+        try { localStorage.setItem('drumVolume', String(drumVolume)); } catch (e) {}
+      }
+    }
+  } catch (e) {}
+
+  try {
+    if (obj.spin && typeof obj.spin.durationMs === 'number') {
+      spinDurationMs = obj.spin.durationMs;
+    }
+  } catch (e) {}
+
+  // Try to reflect which presets were active when the state was shared
+  try {
+    if (obj.activePresets) {
+      const { teamPreset, agentPreset } = obj.activePresets;
+      if (typeof teamPreset === 'string' && savedTeamsSelect) {
+        const teams = loadTeams();
+        const idx = teams.findIndex((t) => (t.name || '').toLowerCase() === teamPreset.toLowerCase());
+        if (idx >= 0) {
+          savedTeamsSelect.value = String(idx);
+          try { localStorage.setItem('savedTeamsSelectedIndex', String(idx)); } catch (e) {}
+        }
+      }
+      if (typeof agentPreset === 'string' && agentPresetSelect) {
+        const presets = loadAgentPresets();
+        const idx = presets.findIndex((p) => (p.name || '').toLowerCase() === agentPreset.toLowerCase());
+        if (idx >= 0) {
+          agentPresetSelect.value = String(idx);
+          try { localStorage.setItem(AGENT_PRESET_SELECTED_KEY, String(idx)); } catch (e) {}
+          updateAgentPresetButtonsState();
+        }
+      }
+    }
+  } catch (e) {}
+
+  try { updateTeamRolesVisibility(); } catch (e) {}
+  try { updatePlayerRowsForTeamSize(); updateCompInputsMax(); enforceCompSum(); } catch (e) {}
+  try { updateTeamRollButtonState(); } catch (e) {}
+}
+
+window.applySharedStateIfPresent = function applySharedStateIfPresent() {
+  if (!__sharedSetupState) return;
+  const obj = __sharedSetupState;
+  __sharedSetupState = null;
+  applySharedSetupState(obj);
+};
+
 if (savedTeamsSelect) {
   renderSavedTeams();
   savedTeamsSelect.addEventListener('change', () => {
@@ -354,6 +737,7 @@ if (savedTeamsSelect) {
     const teams = loadTeams();
     if (!isNaN(idx) && teams[idx]) {
       populateFormFromTeam(teams[idx]);
+      applyTeamPresetFilters(teams[idx]);
     }
     try { localStorage.setItem('savedTeamsSelectedIndex', String(isNaN(idx) ? '' : idx)); } catch (e) {}
     try { updateTeamRollButtonState(); } catch (e) {}
@@ -561,6 +945,12 @@ function renderTeamResults(assignments) {
 // Agent availability list (exclude from wheel)
 const agentListEl = document.getElementById('agentList');
 const agentPoolClearBtn = document.getElementById('agentPoolClearBtn');
+const agentPresetSelect = document.getElementById('agentPresetSelect');
+const agentPresetNameInput = document.getElementById('agentPresetNameInput');
+const agentPresetNewBtn = document.getElementById('agentPresetNewBtn');
+const agentPresetSaveBtn = document.getElementById('agentPresetSaveBtn');
+const agentPresetDeleteBtn = document.getElementById('agentPresetDeleteBtn');
+const agentPresetStatus = document.getElementById('agentPresetStatus');
 
 function renderAgentAvailabilityList() {
   if (!agentListEl) return;
@@ -639,6 +1029,181 @@ if (agentPoolClearBtn) {
       }
     } catch (e) {}
     try { refreshWheelEmptyState(); } catch (e) {}
+  });
+}
+
+// Agent filter presets stored separately from team presets
+const AGENT_PRESETS_KEY = 'agentPoolPresets';
+const AGENT_PRESET_SELECTED_KEY = 'agentPoolSelectedIndex';
+let agentPresetIsNew = false;
+
+function loadAgentPresets() {
+  try {
+    const raw = localStorage.getItem(AGENT_PRESETS_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) { return []; }
+}
+
+function saveAgentPresets(list) {
+  try { localStorage.setItem(AGENT_PRESETS_KEY, JSON.stringify(list || [])); } catch (e) {}
+}
+
+function renderAgentPresets() {
+  if (!agentPresetSelect) return;
+  const presets = loadAgentPresets();
+  agentPresetSelect.innerHTML = '';
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = presets.length ? 'No preset' : 'No presets yet';
+  agentPresetSelect.appendChild(placeholder);
+  presets.forEach((p, idx) => {
+    const opt = document.createElement('option');
+    opt.value = String(idx);
+    opt.textContent = p.name || `Preset ${idx + 1}`;
+    agentPresetSelect.appendChild(opt);
+  });
+  // Restore last selected index if available
+  try {
+    const stored = localStorage.getItem(AGENT_PRESET_SELECTED_KEY);
+    const selIdx = stored === null || stored === '' ? NaN : parseInt(stored, 10);
+    if (!isNaN(selIdx) && presets[selIdx]) {
+      agentPresetSelect.value = String(selIdx);
+    }
+  } catch (e) {}
+  // When presets change, exit "new" mode and ensure select is visible
+  agentPresetIsNew = false;
+  if (agentPresetSelect) agentPresetSelect.style.display = 'inline-block';
+  if (agentPresetNameInput) agentPresetNameInput.style.display = 'none';
+  updateAgentPresetButtonsState();
+}
+
+function updateAgentPresetButtonsState() {
+  if (!agentPresetSelect) return;
+  const presets = loadAgentPresets();
+  const hasPresets = presets.length > 0;
+  const selectedVal = agentPresetSelect.value;
+  const hasSelection = hasPresets && selectedVal !== '' && !isNaN(parseInt(selectedVal, 10));
+
+  const showSave = agentPresetIsNew || hasSelection;
+  const showDelete = !agentPresetIsNew && hasSelection;
+
+  if (agentPresetSaveBtn) {
+    agentPresetSaveBtn.style.display = showSave ? 'inline-block' : 'none';
+  }
+  if (agentPresetDeleteBtn) {
+    agentPresetDeleteBtn.style.display = showDelete ? 'inline-block' : 'none';
+  }
+  // New is always visible to allow creating first preset
+  if (agentPresetNewBtn) {
+    agentPresetNewBtn.style.display = agentPresetIsNew ? 'none' : 'inline-block';
+  }
+}
+
+if (agentPresetSelect) {
+  renderAgentPresets();
+  agentPresetSelect.addEventListener('change', () => {
+    const idx = parseInt(agentPresetSelect.value, 10);
+    const presets = loadAgentPresets();
+    if (!isNaN(idx) && presets[idx]) {
+      applyTeamPresetFilters(presets[idx]);
+      try { updateTeamRollButtonState(); } catch (e) {}
+      try { localStorage.setItem(AGENT_PRESET_SELECTED_KEY, String(idx)); } catch (e) {}
+    } else {
+      // "No preset" selected – remember that choice
+      try { localStorage.setItem(AGENT_PRESET_SELECTED_KEY, ''); } catch (e) {}
+    }
+    agentPresetIsNew = false;
+    if (agentPresetSelect) agentPresetSelect.style.display = 'inline-block';
+    if (agentPresetNameInput) agentPresetNameInput.style.display = 'none';
+    updateAgentPresetButtonsState();
+    setAgentPresetStatus('', null);
+  });
+}
+
+if (agentPresetNewBtn) {
+  agentPresetNewBtn.addEventListener('click', () => {
+    setAgentPresetStatus('', null);
+    // Toggle new-preset mode: clicking New again cancels back to dropdown
+    agentPresetIsNew = !agentPresetIsNew;
+    if (agentPresetIsNew) {
+      if (agentPresetSelect) {
+        agentPresetSelect.value = '';
+        agentPresetSelect.style.display = 'none';
+      }
+      if (agentPresetNameInput) {
+        agentPresetNameInput.style.display = 'inline-block';
+        agentPresetNameInput.value = '';
+        try { agentPresetNameInput.focus(); } catch (e) {}
+      }
+    } else {
+      if (agentPresetSelect) agentPresetSelect.style.display = 'inline-block';
+      if (agentPresetNameInput) agentPresetNameInput.style.display = 'none';
+    }
+    updateAgentPresetButtonsState();
+  });
+}
+
+if (agentPresetSaveBtn) {
+  agentPresetSaveBtn.addEventListener('click', () => {
+    const presets = loadAgentPresets();
+    if (agentPresetIsNew) {
+      const name = (agentPresetNameInput?.value || '').trim();
+      if (!name) {
+        setAgentPresetStatus('Enter a preset name first.', 'error');
+        return;
+      }
+      const exists = presets.some((p) => (p.name || '').toLowerCase() === name.toLowerCase());
+      if (exists) {
+        setAgentPresetStatus('A preset with that name already exists.', 'error');
+        return;
+      }
+      const state = getCurrentFilterState();
+      const preset = {
+        name,
+        roleFilter: state.roleFilter,
+        excludedAgents: state.excludedAgents,
+      };
+      presets.push(preset);
+      saveAgentPresets(presets);
+      renderAgentPresets();
+      const idx = loadAgentPresets().findIndex((p) => (p.name || '').toLowerCase() === name.toLowerCase());
+      if (idx >= 0 && agentPresetSelect) {
+        agentPresetSelect.value = String(idx);
+        try { localStorage.setItem(AGENT_PRESET_SELECTED_KEY, String(idx)); } catch (e) {}
+      }
+      agentPresetIsNew = false;
+      if (agentPresetSelect) agentPresetSelect.style.display = 'inline-block';
+      if (agentPresetNameInput) agentPresetNameInput.style.display = 'none';
+      updateAgentPresetButtonsState();
+      setAgentPresetStatus(`Preset "${name}" created.`, 'success');
+      return;
+    }
+
+    if (!agentPresetSelect) return;
+    const idx = parseInt(agentPresetSelect.value, 10);
+    if (isNaN(idx) || !presets[idx]) return;
+    const state = getCurrentFilterState();
+    presets[idx].roleFilter = state.roleFilter;
+    presets[idx].excludedAgents = state.excludedAgents;
+    saveAgentPresets(presets);
+    setAgentPresetStatus(`Preset "${presets[idx].name || `Preset ${idx + 1}`}" updated.`, 'success');
+  });
+}
+
+if (agentPresetDeleteBtn) {
+  agentPresetDeleteBtn.addEventListener('click', () => {
+    if (!agentPresetSelect) return;
+    const idx = parseInt(agentPresetSelect.value, 10);
+    if (isNaN(idx)) return;
+    const presets = loadAgentPresets();
+    if (!presets[idx]) return;
+    const ok = window.confirm(`Delete agent preset "${presets[idx].name || `Preset ${idx + 1}`}"?`);
+    if (!ok) return;
+    presets.splice(idx, 1);
+    saveAgentPresets(presets);
+    renderAgentPresets();
+    setAgentPresetStatus('Preset deleted.', 'success');
   });
 }
 

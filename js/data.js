@@ -406,6 +406,11 @@ async function loadAgentsFromValorantApi() {
     try { if (typeof window.refreshWheelEmptyState === 'function') window.refreshWheelEmptyState(); } catch (e) {}
     try { markWheelAssetsReady(); } catch (e) {}
     try { if (typeof window.refreshTeamCompIcons === 'function') window.refreshTeamCompIcons(ROLE_ICONS); } catch (e) {}
+    try {
+      if (typeof window.applySharedStateIfPresent === 'function') {
+        window.applySharedStateIfPresent();
+      }
+    } catch (e) {}
     // After agents have fully loaded and filters/exclusions are applied,
     // validate team-roll feasibility so the initial state is correct.
     try {
